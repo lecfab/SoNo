@@ -1,9 +1,10 @@
-# Sorting nodes of big networks
+# Sorting nodes in networks
 
 Here is a tool to read a directed graph and permute its nodes according to various orders. The idea is that some algorithms may have different time and space efficiency depending on the ordering of nodes.
 
 ## Compilation
 `$ make ord`			to obtain a debugging executable
+
 `$ make ord FAST=1`	to optimise the executable for production
 
 ## Running
@@ -24,5 +25,7 @@ Here is a tool to read a directed graph and permute its nodes according to vario
 ## Contributors 
 
 Fabrice Lécuyer (fabrice.lecuyer@lip6.fr)
+
 Maximilien Danisch (http://bit.ly/danisch, maximilien.danisch@gmail.com)
+
 2020
