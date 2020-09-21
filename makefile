@@ -33,7 +33,7 @@ orders: utils algo/algo_kcore.o order/order_core.o order/order_deg.o order/order
 # 	$(CC) -o main.o -c main.c $(CFLAGS)
 
 clean:
-	rm -rf */*.o
+	rm -rf */*.o *.o
 
 mrproper: clean
 	rm -rf $(EXEC)
