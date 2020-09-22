@@ -11,10 +11,17 @@
 #include <tuple>
 #include <list>
 
+#ifndef DEBUG
+#define Debug(msg) {}
+#else
 #define Debug(msg) { cout << "\tDebug: " << msg << endl; fflush(stdout); }
+#endif
 #define Alert(msg) { cout << "\tAlert: " << msg << endl; fflush(stdout); }
 #define Info(msg) { cout << "\tInfo: " << msg << endl; fflush(stdout); }
+
+#ifndef NLINKS
 #define NLINKS 100000000
+#endif
 
 #define TimeBegin() auto time_begin = chrono::steady_clock::now(); auto time_previous = time_begin, time_now = time_begin; auto time_diff = chrono::duration_cast<chrono::milliseconds>(time_now - time_previous).count();
 #define TimeStep(m) cout << m; time_now = chrono::steady_clock::now(); print_time(time_previous, time_now); time_previous = time_now;

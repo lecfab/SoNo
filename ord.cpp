@@ -34,7 +34,7 @@ int main(int argc, char** argv){
 		for (ul u = 0; u < n; ++u) rank.push_back(u);
 		TimeStep("Read")
 		
-		if(order_name == "rand") { Debug(n)
+		if(order_name == "rand") {
 			Debug("Order rand from filestream")
 			srand ( unsigned ( time(0) ) );
     		random_shuffle( rank.begin(), rank.end() );

@@ -13,7 +13,7 @@ using namespace std;
 vector<ul> algo_bfs(const Adjlist &g) {
 	Debug("Algo bfs")
 	vector<bool> placed(g.n, false);
-	vector<ul> rank; rank.reserve(g.n);
+	vector<ul> rank; rank.reserve(g.n); // warning: this is an inverted rank
 
 	ul i=0;
 	for (ul u = 0; u < g.n; ++u) {

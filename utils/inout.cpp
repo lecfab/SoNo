@@ -33,7 +33,7 @@ edgelist readedgelist(ifstream &file) {
 ul get_number_vertices(ifstream &file) {
 	ul n=0, u, v;
 	while(file >> u >> v) {
-		Debug(n << ' '<<u <<' '<< v)
+		//Debug(n << ' '<<u <<' '<< v)
 		n = max3(n, u, v);
 	}
 	return n+1;

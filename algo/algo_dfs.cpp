@@ -33,10 +33,12 @@ vector<ul> algo_dfs(const Adjlist &g) {
 	vector<Nodeneigh> stack; stack.reserve(g.n);
 	vector<ul> rank; rank.reserve(g.n);
 
+	ul r=0;
+
 	for (ul u = 0; u < g.n; ++u) {
 		if(visited[u]) continue;
 	
-		rank.push_back(u);
+		rank[u] = r++;
 		visited[u] = true;
 		stack.push_back(Nodeneigh(g, u));
 
@@ -47,11 +49,17 @@ vector<ul> algo_dfs(const Adjlist &g) {
 				ul v = *deepest.neigh;
 				deepest.neigh ++;
 				if(visited[v]) continue;
+				rank[v] = r++;
 				visited[v] = true;
 				stack.push_back(Nodeneigh(g, v));
 			}
 		}
 	}
+
+	for(ul u=0; u<g.n; u++) {
+        cout << u << "\t" << rank[u] << endl;
+    }
+
 	return rank;
 }
 

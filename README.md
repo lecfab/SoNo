@@ -3,9 +3,9 @@
 Here is a tool to read a directed graph and permute its nodes according to various orders. The idea is that some algorithms may have different time and space efficiency depending on the ordering of nodes.
 
 ## Compilation
-`$ make ord`			to obtain a debugging executable
+`$ make ord DEBUG=1` to obtain a debugging executable
 
-`$ make ord FAST=1`	to optimise the executable for production
+`$ make ord` to optimise the executable for production
 
 ## Running
 `$ ./ord DATASET ORDER FILE`
