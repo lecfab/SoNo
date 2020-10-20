@@ -1,13 +1,7 @@
-#ifndef ALGO_DFS
-#define ALGO_DFS
-
-#include <list>
-
-#include "../utils/tools.cpp"
-#include "../utils/adjlist.cpp"
+#include "algo_dfs.h"
+#include "../utils/adjlist.h"
 
 using namespace std;
-
 
 // procedure DFS_iterative(G, v) is
 //     let S be a stack
@@ -19,50 +13,51 @@ using namespace std;
 //                 label w as discovered
 //                 S.push(iterator of G.adjacentEdges(w))
 //         else
-//             S.pop() 
+//             S.pop()
 
-struct Nodeneigh {
-	const ul node;
-	const ul* neigh;
-	Nodeneigh(const Adjlist &g, ul &u) : node(u), neigh(g.neigh_beg(u)) {}
-};
+// Nodeneigh::Nodeneigh(const Adjlist &g, ul &u) : node(u), neigh(g.neigh_beg(u)) {}
+
+
 // time n+m, size n
 vector<ul> algo_dfs(const Adjlist &g) {
-	Debug("Algo dfs")
-	vector<bool> visited(g.n, false);
-	vector<Nodeneigh> stack; stack.reserve(g.n);
-	vector<ul> rank; rank.reserve(g.n);
+  Debug("Algo dfs") vector<bool> visited(g.n, false);
+  vector<Nodeneigh> stack;
+  stack.reserve(g.n);
+  vector<ul> rank;
+  rank.reserve(g.n);
 
-	ul r=0;
+  ul r = 0;
 
-	for (ul u = 0; u < g.n; ++u) {
-		if(visited[u]) continue;
-	
-		rank[u] = r++;
-		visited[u] = true;
-		stack.push_back(Nodeneigh(g, u));
+  for (ul u = 0; u < g.n; ++u) {
+    if (visited[u])
+      continue;
 
-		while(!stack.empty()) {
-			Nodeneigh &deepest = stack.back();
-			if(deepest.neigh >= g.neigh_end(deepest.node)) stack.pop_back();
-			else {
-				ul v = *deepest.neigh;
-				deepest.neigh ++;
-				if(visited[v]) continue;
-				rank[v] = r++;
-				visited[v] = true;
-				stack.push_back(Nodeneigh(g, v));
-			}
-		}
-	}
+    rank[u] = r++;
+    visited[u] = true;
+    stack.push_back(Nodeneigh(g, u));
 
-	for(ul u=0; u<g.n; u++) {
-        cout << u << "\t" << rank[u] << endl;
+    while (!stack.empty()) {
+      Nodeneigh &deepest = stack.back();
+      if (deepest.neigh >= g.neigh_end(deepest.node))
+        stack.pop_back();
+      else {
+        ul v = *deepest.neigh;
+        deepest.neigh++;
+        if (visited[v])
+          continue;
+        rank[v] = r++;
+        visited[v] = true;
+        stack.push_back(Nodeneigh(g, v));
+      }
     }
+  }
 
-	return rank;
+  // for (ul u = 0; u < g.n; u++) {
+  //   cout << u << "\t" << rank[u] << endl;
+  // }
+
+  return rank;
 }
-
 
 // time m+n, size m
 // ul source_dfs(const Dadjlist &g, const ul u)
@@ -89,5 +84,3 @@ vector<ul> algo_dfs(const Adjlist &g) {
 
 // 	return nb;
 // }
-
-#endif

@@ -1,15 +1,12 @@
-#ifndef ALGO_BELLMAN
-#define ALGO_BELLMAN
+#include "algo_bellman.h"
 
-#include <list>
-
-#include "../utils/tools.cpp"
-#include "../utils/adjlist.cpp"
+#include "../utils/tools.h"
+#include "../utils/adjlist.h"
 
 using namespace std;
 
 
-// fonction Bellman_Ford(G, s) 
+// fonction Bellman_Ford(G, s)
 //   pour chaque sommet u du graphe
 //   |        d[u] = +∞
 //   d[s] = 0
@@ -137,5 +134,3 @@ void algo_bellman(const Adjlist &g, ul repeat) {
 
 // 	return dist;
 // }
-
-#endif

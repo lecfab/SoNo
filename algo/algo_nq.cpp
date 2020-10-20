@@ -1,11 +1,8 @@
-#ifndef ALGO_NQ
-#define ALGO_NQ
-
+#include "algo_nq.h"
 #include <ctime>
 #include <cmath>
 
-#include "../utils/tools.cpp"
-#include "../utils/adjlist.cpp"
+#include "../utils/adjlist.h"
 
 ul algo_nq(const Adjlist &g, ul repeat) {
 	//cout << "Algo nq" << endl;
@@ -27,5 +24,3 @@ ul algo_nq(const Adjlist &g, ul repeat) {
 	}
 	return result;
 }
-
-#endif

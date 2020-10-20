@@ -1,39 +1,68 @@
-CC=g++ #-std=c++14
+CC=g++ -std=c++14 -fconcepts
 # CFLAGS=-O9 -lm
 
 DEBUG?=0 # optimisation option
 
+EXEC=read ord undirect
+MF=makefile # recompile when Makefile has been modified
+
 ifeq ($(DEBUG), 1)
-	CFLAGS=-Og -Wextra -D DEBUG
+	CFLAGS=-Og -Wextra -g3 -D DEBUG
 	o=debug.o
 else
 	CFLAGS=-Ofast # https://cpluspluspedia.com/fr/tutorial/4708/compiler-et-construire
 	o=o
 endif
 
-EXEC=read ord
-MF=makefile # recompile when Makefile has been modified
+
+UTILS_H =	utils/tools.h \
+			utils/inout.h \
+			utils/edgelist.h \
+			utils/adjlist.h \
+			utils/heap.h # utils/CLI11.h
+ALGOS_H = 	algo/algo_nq.h \
+			algo/algo_bfs.h \
+			algo/algo_dfs.h \
+			algo/algo_bellman.h \
+			algo/algo_diameter.h \
+			algo/algo_kcore.h \
+			algo/algo_tarjan.h
+ORDERS_H = 	order/order_core.h \
+			order/order_deg.h \
+			order/order_rand.h
+
+UTILS_O =	$(UTILS_H:.h=.$(o))
+ALGOS_O = 	$(ALGOS_H:.h=.$(o))
+ORDERS_O = 	$(ORDERS_H:.h=.$(o))
 
 all: $(EXEC)
 
-read: read.$(o) utils orders algos $(MF)
-	$(CC) $< $(CFLAGS) -o read
+read: read.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
+	$(CC) $^ $(CFLAGS) -o $@
 
-ord: ord.$(o) utils orders $(MF) 
-	$(CC) $< $(CFLAGS) -o ord
+ord: ord.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O) #algo/algo_tarjan.$(o)
+	$(CC) $^ $(CFLAGS) -o $@
+
+undirect: undirect.$(o) $(UTILS_O)
+	$(CC) $^ $(CFLAGS) -o $@
+
+read.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
+ord.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
+undirect.$(o): $(UTILS_H)
 
 
-utils: utils/tools.$(o) utils/inout.$(o) utils/adjlist.$(o) utils/heap.$(o)
+algo/algo_diameter.$(o): algo/algo_bellman.h
+algo/algo_tarjan.$(o): algo/algo_dfs.h
+order/order_core.$(o): algo/algo_kcore.h
 
-algos: utils algo/algo_nq.$(o) algo/algo_bfs.$(o) algo/algo_dfs.$(o) algo/algo_bellman.$(o) algo/algo_diameter.$(o) algo/algo_kcore.$(o) algo/algo_tarjan.$(o)
+# utils/CLI11.$(o): utils/CLI11.h
+# 	$(CC) -c $< $(CFLAGS) -o $@
 
-orders: utils algo/algo_kcore.$(o) order/order_core.$(o) order/order_deg.$(o) order/order_rand.$(o)
-
-%.$(o): %.cpp $(MF)
+%.debug.o: %.cpp $(MF)
 	$(CC) -c $< $(CFLAGS) -o $@
 
-# main.$(o): main.c
-# 	$(CC) -o main.$(o) -c main.c $(CFLAGS)
+%.o: %.cpp $(MF)
+	@$(CC) -c $< $(CFLAGS) -o $@
 
 .PHONY: clean mrproper
 

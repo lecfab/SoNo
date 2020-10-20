@@ -1,11 +1,8 @@
-#ifndef ALGO_DIAMETER
-#define ALGO_DIAMETER
+#include "algo_diameter.h"
 
-#include <list>
-
-#include "../utils/tools.cpp"
-#include "../utils/adjlist.cpp"
-#include "algo_bellman.cpp"
+#include "../utils/tools.h"
+#include "../utils/adjlist.h"
+#include "algo_bellman.h"
 
 using namespace std;
 
@@ -32,5 +29,3 @@ ul algo_diameter(const Adjlist &g, ul repeat) {
 
 	return diameter;
 }
-
-#endif

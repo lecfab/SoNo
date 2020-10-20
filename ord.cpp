@@ -1,45 +1,64 @@
 #include <iostream>
-#include <iomanip> 
+#include <iomanip>
 #include <string>
 
 #include <vector>
 #include <cmath>
 
-#include "utils/tools.cpp"
-#include "utils/inout.cpp"
-#include "utils/adjlist.cpp"
-#include "order/order_rand.cpp"
-#include "order/order_deg.cpp"
-#include "order/order_core.cpp"
+#include <algorithm>    // std::random_shuffle
+#include <ctime>        // std::time
+#include <cstdlib>      // std::rand, std::srand
+
+#include "utils/CLI11.h" // options parser
+#include "utils/tools.h"
+#include "utils/inout.h"
+#include "utils/adjlist.h"
+#include "utils/edgelist.h"
+#include "order/order_rand.h"
+#include "order/order_deg.h"
+#include "order/order_core.h"
+#include "algo/algo_tarjan.h"
 
 using namespace std;
 
-int main(int argc, char** argv){
+
+int main(int argc, char** argv) {
 	TimeBegin()
 
-	if(argc <= 3) { cout << "See README.txt" << endl; return 1; }
-	string filename(argv[1]);
+  CLI::App app{"Read a list of edges and permute its nodes according to various orders. See README.md for more information."};
+
+  string filename, order_name="original", algo_name="no", output_file="ord.auto.txt";
+  bool directed;
+  app.add_option("file", filename, "Text file: list of `a b` edges with nodes IDs ranging from 0 to N-1")->required();
+  app.add_option("order", order_name, "Order used to relabel the nodes")->required()->check(CLI::IsMember({"original", "rand", "deg+", "deg-", "core"}, CLI::ignore_case));
+  app.add_flag("-d,!-u,--directed,!--undirected", directed, "Specify if the graph is directed or undirected; multiple edges are not accepted");
+  app.add_option("-o,--output", output_file, "File in which to output the order")->capture_default_str();
+
+  CLI11_PARSE(app, argc, argv);
+
+
 	ifstream file(filename);
-	string order_name = string(argv[2]);
-	ul n = 0;
-	vector<ul> rank;
+  //ofstream output(output_file);
+  ul n = 0;
+  vector<ul> rank;
 
 
 	// --------------------------------------------------
-	// ------- Sort after reading without storing -------
+	// --- Sort after reading without data-structure ----
 	// --------------------------------------------------
 
-	if(order_name == "no" or order_name == "rand") {
+	if(order_name == "original" or order_name == "rand") {
 		n = get_number_vertices(file);
+    rank.reserve(n);
 		for (ul u = 0; u < n; ++u) rank.push_back(u);
 		TimeStep("Read")
-		
+
 		if(order_name == "rand") {
 			Debug("Order rand from filestream")
 			srand ( unsigned ( time(0) ) );
-    		random_shuffle( rank.begin(), rank.end() );
+    	random_shuffle( rank.begin(), rank.end() );
 		}
-	} 
+	}
 
 
 	// --------------------------------------------------
@@ -48,17 +67,17 @@ int main(int argc, char** argv){
 
 	else {
 		Info("Reading edgelist from file " << filename)
-		edgelist *h = new edgelist; //*h = c_readedgelist(argv[1]);
-		*h=readedgelist(file);
-		n = h->n;
+		Edgelist h(file); //*h = c_readedgelist(argv[1]);
+		n = h.n;
+    rank.reserve(n);
 
-		Info("Number of nodes: " << h->n)
-		Info("Number of edges: " << h->e)
+		Info("Number of nodes: " << h.n)
+		Info("Number of edges: " << h.e)
 		TimeStep("Read")
 
-		if(order_name == "deg") rank = order_deg(*h);
-		else if(order_name == "deg-") rank = order_degIn(*h);
-		else if(order_name == "deg+") rank = order_degOut(*h);
+		if(order_name == "deg") rank = order_deg(h);
+		else if(order_name == "deg-") rank = order_degIn(h);
+		else if(order_name == "deg+") rank = order_degOut(h);
 
 
 		// --------------------------------------------------
@@ -67,13 +86,16 @@ int main(int argc, char** argv){
 
 		else {
 			Info("Converting to adjacency list");
-			Dadjlist g(*h);
+      Adjlist* g;
+      if(directed) g = new Dadjlist(h);
+      else g = new Uadjlist(h);
+
 			TimeStep("Adjlist")
 
-			if(order_name == "core") rank = order_core(g);
+      if(order_name == "core") rank = order_core(*g);
+			else if(order_name == "tarjan") rank = algo_tarjan(*g);
 			else { Alert("Unknown order `" << order_name <<"`"); return 1; }
 		}
-		delete h;
 	}
 
 	TimeStep("Order")
@@ -82,13 +104,11 @@ int main(int argc, char** argv){
 	// -------- Output the rank for further use ---------
 	// --------------------------------------------------
 
-	Info("Output into file " << argv[3])
+	Info("Output into file " << output_file)
 	// ofstream output_file(argv[4]); printorder(rank, g.n, output_file, g);
-	c_printorder(rank, n, argv[3]);
+	c_printorder(rank, n, output_file.c_str());
 	TimeStep("Output")
+  TimeTotal()
 
-
-
-	TimeTotal()
 	return 0;
 }
