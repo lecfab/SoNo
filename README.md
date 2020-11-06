@@ -32,8 +32,8 @@ Type `$ ./ord --help` for more information.
 
 #### Options
 -   `-o FILE`: output file in which the order will be printed (the new ID of the node with the old ID u is on line u)
--   `-d`: flag to specify that the graph is directed (it CAN have both `a b` and `b a` edges)
--   `-u` (default): flag to specify that the graph is undirected (it CANNOT have both `a b` and `b a` edges). See below how to make a directed graph undirected.
+-   `-d`: flag to specify that the graph is directed (it <u>can</u> have both `a b` and `b a` edges)
+-   `-u` (default): flag to specify that the graph is undirected (it <u>cannot</u> have both `a b` and `b a` edges). See below how to make a directed graph undirected.
 
 #### Output
 A file of N lines where line i contains the rank of node i according to ORDER.
@@ -49,7 +49,7 @@ Here is the way to do so:
 `$ ./undirect INPUT OUTPUT`
 
 #### Rank edges
-The `ord` program outputs a rank: for n nodes, it contains n lines, where line i is the new rank of node i.
+The `ord` program outputs a rank: for N nodes, it contains N lines, where line i is the new rank of node i.
 
 Here is a tool to renumber an edge list INPUT according to a rank RANK.
 
@@ -57,11 +57,11 @@ Here is a tool to renumber an edge list INPUT according to a rank RANK.
 
 `$ ./rankedges INPUT RANK OUTPUT`
 
-Note that RANK should have been obtained with `ord` applied on dataset INPUT.
+Note that RANK should be the output of `ord` applied on dataset INPUT.
 
 ## Contributors
 
-Fabrice Lécuyer (<http://fabrice.lecuyer.me>, fabrice.lecuyer@lip6.fr)
+Fabrice Lécuyer (fabrice.lecuyer@lip6.fr)
 
 Maximilien Danisch (<http://bit.ly/danisch>, maximilien.danisch@gmail.com)
 
