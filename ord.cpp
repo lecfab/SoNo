@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   bool directed;
   app.add_option("file", filename, "Text file: list of `a b` edges with nodes IDs ranging from 0 to N-1")->required();
   app.add_option("order", order_name, "Order used to relabel the nodes")->required()
-    ->check(CLI::IsMember({"original", "rand", "deg+", "deg-", "core", "core+", "core-", "icore+", "icore-", "rcm", "gorder"}, CLI::ignore_case));
+    ->check(CLI::IsMember({"original", "rand", "deg+", "deg-", "core", "core+", "core-", "icore", "icore+", "icore-", "rcm", "gorder"}, CLI::ignore_case));
   app.add_flag("-d,!-u,--directed,!--undirected", directed, "Specify if the graph is directed or undirected; multiple edges are not accepted");
   app.add_option("-o,--output", output_file, "File in which to output the order")->capture_default_str();
 
@@ -109,6 +109,7 @@ int main(int argc, char** argv) {
 			TimeStep("Adjlist")
 
       if(order_name == "core") rank = algo_kcore(*g).rank;
+			else if(order_name == "icore") rank = algo_icore(*g).rank;
 			else if(order_name == "tarjan") rank = algo_tarjan(*g);
 			else { Alert("Unknown order `" << order_name <<"`"); return 1; }
       delete g;

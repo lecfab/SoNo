@@ -28,6 +28,7 @@ Type `$ ./ord --help` for more information.
     -   `deg+`, `deg-`: sorted by decreasing outgoing (resp. ingoing) degree
     -   `core`: sorted by degeneracy ordering (k-core pealing algorithm); note that for directed graphs, it corresponds to `core-` below
     -   `core+`, `core-`: k-core pealing using only out-edges (resp. in-edges)
+    -   `icore`: inverted pealing, where nodes of higher degree are removed first
     -   `icore+`, `icore-`: inverted pealing, where nodes of higher out-degree (resp. in-degree) are removed first
 
 #### Options
