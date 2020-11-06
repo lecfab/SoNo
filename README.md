@@ -25,10 +25,10 @@ Type `$ ./ord --help` for more information.
     -   `original`:   the original order provided by the dataset (warning: it is usually not random)
     -   `rand`: random reordering of nodes
     -   `deg`:  sorted by decreasing total degree
-    -   `deg+`: sorted by decreasing outgoing degree
-    -   `deg-`: sorted by decreasing ingoing degree
-    -   `core`: sorted by degeneracy ordering (k-core pealing algorithm), for directed or undirected graph
-    -   `core+`, `core-`
+    -   `deg+`, `deg-`: sorted by decreasing outgoing (resp. ingoing) degree
+    -   `core`: sorted by degeneracy ordering (k-core pealing algorithm); note that for directed graphs, it corresponds to `core-` below
+    -   `core+`, `core-`: k-core pealing using only out-edges (resp. in-edges)
+    -   `icore+`, `icore-`: inverted pealing, where nodes of higher out-degree (resp. in-degree) are removed first
 
 #### Options
 -   `-o FILE`: output file in which the order will be printed (the new ID of the node with the old ID u is on line u)

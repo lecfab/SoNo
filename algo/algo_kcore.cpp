@@ -121,6 +121,65 @@ Kdegeneracies algo_kcoreOut(const Badjlist &g) {
 }
 
 
+Kdegeneracies algo_icore(const Adjlist &g) {
+  Bheap h(g.n);
+  if(g.edge_factor == 1) {
+    Info("Inverted directed core")
+    vector<ul> degIn(g.n, 0);
+    for (ul u = 0; u < g.n; ++u)
+      for (auto &v : g.neigh_iter(u))
+        degIn[v] ++;
+    for (ul u = 0; u < g.n; ++u)
+  		h.insert(Keyvalue(u, g.n-degIn[u]));
+  }
+  else {
+    Info("Inverted undirected core")
+  	for (ul u = 0; u < g.n; ++u)
+  		h.insert(Keyvalue(u, g.n-g.get_degree(u)));
+  }
+
+  Kdegeneracies kd(g.n);
+	ul degeneracy = 0;
+	for (ul i = 1; i <= g.n; ++i) {
+		Keyvalue kv = h.popmin();
+
+		ul u = kv.key;
+		kd.rank[u] = g.n - i;
+    if(degeneracy==0 and kv.val == g.n-1) degeneracy = g.n-u;
+    Debug(i<<"th is " <<u << " with degeneracy " << degeneracy << ", deg " << g.n-kv.val << " / ?")
+    for (auto &v : g.neigh_iter(u))
+      h.update_decrement(v);
+	}
+  Info("Graph degeneracy " << degeneracy)
+
+	return kd;
+}
+
+Kdegeneracies algo_icore(const Badjlist &g) {
+  Info("Inverted core")
+	Bheap h(g.n);
+	for (ul u = 0; u < g.n; ++u)
+		h.insert(Keyvalue(u, g.n-g.get_deg(u)));
+
+  Kdegeneracies kd(g.n);
+	ul degeneracy = 0;
+	for (ul i = 1; i <= g.n; ++i) {
+		Keyvalue kv = h.popmin();
+
+		ul u = kv.key;
+		kd.rank[u] = g.n - i;
+    if(degeneracy==0 and kv.val == g.n-1) degeneracy = g.n-u;
+    Debug(i<<"th is " <<u << " with degeneracy " << degeneracy << ", deg " << g.n-kv.val << " / "<<g.get_deg(u))
+    for (auto &v : g.neighIn_iter(u))
+      h.update_decrement(v);
+    for (auto &v : g.neighOut_iter(u))
+      h.update_decrement(v);
+	}
+  Info("Graph degeneracy " << degeneracy)
+
+	return kd;
+}
+
 
 Kdegeneracies algo_icoreIn(const Badjlist &g) {
   Info("Inverted in-core")

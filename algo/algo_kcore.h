@@ -32,6 +32,8 @@ Kdegeneracies algo_kcore(const Adjlist &g);
 Kdegeneracies algo_kcore(const Badjlist &g);
 Kdegeneracies algo_kcoreIn(const Badjlist &g);
 Kdegeneracies algo_kcoreOut(const Badjlist &g);
+Kdegeneracies algo_icore(const Adjlist &g);
+Kdegeneracies algo_icore(const Badjlist &g);
 Kdegeneracies algo_icoreIn(const Badjlist &g);
 Kdegeneracies algo_icoreOut(const Badjlist &g);
 
