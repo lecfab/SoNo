@@ -13,6 +13,8 @@ public:
 
   Edgelist(ul n, ul e);
   Edgelist(std::ifstream &file);
+  void sort_edges();
+  void apply_rank(const std::vector<ul> &rank);
   void print_c(const char *output) const;
 
   ul get_degIn(const ul &u);

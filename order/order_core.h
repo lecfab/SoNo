@@ -1,7 +1,7 @@
 #ifndef ORDER_CORE_H
 #define ORDER_CORE_H
 
-/* warning: only works in undirected graphs */
+/* warning: only works for undirected graphs */
 
 #include "../utils/tools.h"
 struct Adjlist;

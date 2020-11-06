@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "edgelist.h"
 #include "tools.h"
 
@@ -7,7 +9,7 @@ using namespace std;
 Edgelist::Edgelist(ul n, ul e) : n(n), e(e) {
 	edges.reserve(e);
 }
-Edgelist::Edgelist(std::ifstream &file) {
+Edgelist::Edgelist(ifstream &file) {
 	edges.reserve(NLINKS);
 	n=0;
 	ul u, v;
@@ -17,6 +19,17 @@ Edgelist::Edgelist(std::ifstream &file) {
 	}
 	e = edges.size();
 	n++;
+}
+
+void Edgelist::sort_edges() {
+  sort(edges.begin(), edges.end(), [&](const edge a, const edge b) -> bool {
+    return a.first < b.first or (a.first == b.first && a.second < b.second);
+  });
+}
+
+void Edgelist::apply_rank(const vector<ul> &rank) {
+  for(ul i=0; i<e; i++)
+    edges[i] = edge(rank[edges[i].first], rank[edges[i].second]);
 }
 
 void Edgelist::print_c(const char* output) const {
@@ -43,8 +56,9 @@ ul Edgelist::get_deg(const ul &u) {
 }
 
 void Edgelist::print_some(int a) const {
+  if(a>e) a=e;
   cout << "Printing " << a << " edges" << endl;
-  for(int i=0; i<a; ++i)
+  for(ul i=0; i<a; ++i)
     cout <<"\t"<< edges[i].first << " " << edges[i].second << endl;
 }
 

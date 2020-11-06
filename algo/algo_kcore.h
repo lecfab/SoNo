@@ -11,6 +11,10 @@ indices where degeneracy changes time optimisation: compute both arrays
 #include "../utils/tools.h"
 #include <vector>
 struct Adjlist;
+struct Uadjlist;
+struct Dadjlist;
+struct Badjlist;
+struct Bheap;
 
 struct Kdegeneracies {
   ul n;
@@ -23,7 +27,17 @@ struct Kdegeneracies {
   }
 };
 
+
 Kdegeneracies algo_kcore(const Adjlist &g);
+Kdegeneracies algo_kcore(const Badjlist &g);
+Kdegeneracies algo_kcoreIn(const Badjlist &g);
+Kdegeneracies algo_kcoreOut(const Badjlist &g);
+Kdegeneracies algo_icoreIn(const Badjlist &g);
+Kdegeneracies algo_icoreOut(const Badjlist &g);
+
 std::vector<ul> algo_kcore_rank(const Adjlist &g);
+// Kdegeneracies algo_kcore(const Adjlist &g);
+// Kdegeneracies algo_kcoreIn(const Adjlist &g);
+// Kdegeneracies algo_kcoreOut(const Adjlist &g);
 
 #endif

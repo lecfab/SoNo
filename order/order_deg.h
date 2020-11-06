@@ -8,16 +8,17 @@ struct Keyvalue;
 struct Edgelist;
 struct Adjlist;
 
-inline bool compare_nodedeg (Keyvalue &a, Keyvalue &b);
+inline bool compare_nodedeg_desc (Keyvalue &a, Keyvalue &b);
+inline bool compare_nodedeg_asc (Keyvalue &a, Keyvalue &b);
 
 
 // --------------------------------------------------
 // ----------------- From edgelist ------------------
 // --------------------------------------------------
-std::vector<ul> rank_from_deg(const std::vector<ul> &deg, const ul &n);
-std::vector<ul> order_deg(Edgelist &g);
-std::vector<ul> order_degOut(Edgelist &g);
-std::vector<ul> order_degIn(Edgelist &g);
+std::vector<ul> rank_from_deg(const std::vector<ul> &deg, const ul &n, bool desc=true);
+std::vector<ul> order_deg(Edgelist &g, bool desc=true);
+std::vector<ul> order_degOut(Edgelist &g, bool desc=true);
+std::vector<ul> order_degIn(Edgelist &g, bool desc=true);
 
 // --------------------------------------------------
 // ----------------- From adjlist -------------------

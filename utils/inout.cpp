@@ -16,6 +16,13 @@ ul get_number_vertices(ifstream &file) {
   return n+1;
 }
 
+
+vector<ul> read_order(ifstream &file) {
+  vector<ul> rank; rank.reserve(NNODES);
+	for(ul i=0; file >> i;) rank.push_back(i);
+	return rank;
+}
+
 // Experiment: FILE* seems to be 20x faster than ofstream <<
 void c_printorder(const vector<ul> &rank, const ul n, const char* output){
   FILE *file=fopen(output,"w");

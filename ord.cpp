@@ -17,7 +17,10 @@
 #include "order/order_rand.h"
 #include "order/order_deg.h"
 #include "order/order_core.h"
+#include "order/order_rcm.h"
+#include "order/order_gorder.h"
 #include "algo/algo_tarjan.h"
+#include "algo/algo_kcore.h"
 
 using namespace std;
 
@@ -30,7 +33,8 @@ int main(int argc, char** argv) {
   string filename, order_name="original", algo_name="no", output_file="ord.auto.txt";
   bool directed;
   app.add_option("file", filename, "Text file: list of `a b` edges with nodes IDs ranging from 0 to N-1")->required();
-  app.add_option("order", order_name, "Order used to relabel the nodes")->required()->check(CLI::IsMember({"original", "rand", "deg+", "deg-", "core"}, CLI::ignore_case));
+  app.add_option("order", order_name, "Order used to relabel the nodes")->required()
+    ->check(CLI::IsMember({"original", "rand", "deg+", "deg-", "core", "core+", "core-", "icore+", "icore-", "rcm", "gorder"}, CLI::ignore_case));
   app.add_flag("-d,!-u,--directed,!--undirected", directed, "Specify if the graph is directed or undirected; multiple edges are not accepted");
   app.add_option("-o,--output", output_file, "File in which to output the order")->capture_default_str();
 
@@ -76,26 +80,39 @@ int main(int argc, char** argv) {
 		TimeStep("Read")
 
 		if(order_name == "deg") rank = order_deg(h);
+    else if(order_name == "deg+") rank = order_degOut(h);
 		else if(order_name == "deg-") rank = order_degIn(h);
-		else if(order_name == "deg+") rank = order_degOut(h);
+		else if(order_name == "rcm") rank = order_rcm(h);
+    else if(order_name == "gorder") {
+      rank = complete_gorder(h);
+      // h.apply_rank(rank);
+      // h.sort_edges();
+    }
 
 
 		// --------------------------------------------------
 		// -- Convert edgelist file into Adjlist structure --
 		// --------------------------------------------------
 
+    else if(order_name == "core-" or order_name == "core+" or order_name == "icore-" or order_name == "icore+") {
+      Badjlist g(h);
+      if(order_name == "core-") rank = algo_kcoreIn(g).rank;
+      else if(order_name == "core+") rank = algo_kcoreOut(g).rank;
+      else if(order_name == "icore-") rank = algo_icoreIn(g).rank;
+      else if(order_name == "icore+") rank = algo_icoreOut(g).rank;
+    }
 		else {
 			Info("Converting to adjacency list");
       Adjlist* g;
       if(directed) g = new Dadjlist(h);
       else g = new Uadjlist(h);
-
 			TimeStep("Adjlist")
 
-      if(order_name == "core") rank = order_core(*g);
+      if(order_name == "core") rank = algo_kcore(*g).rank;
 			else if(order_name == "tarjan") rank = algo_tarjan(*g);
 			else { Alert("Unknown order `" << order_name <<"`"); return 1; }
-		}
+      delete g;
+    }
 	}
 
 	TimeStep("Order")

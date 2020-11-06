@@ -6,13 +6,15 @@ Here is a C++ tool to read a graph and permute its nodes according to various or
 ## Installation & compilation
 `$ git clone https://github.com/lecfab/sono.git`
 
-`$ make ord DEBUG=1` to obtain a debugging executable
-
 `$ make ord` to optimise the executable for production
+
+`$ make ord DEBUG=1` to obtain a debugging executable (compile information, no optimisation, debug messages...)
 
 ## Running
 
-`$ ./ord DATASET ORDER FILE`
+`$ ./ord DATASET ORDER`
+
+Type `$ ./ord --help` for more information.
 
 
 #### Parameters
@@ -25,16 +27,20 @@ Here is a C++ tool to read a graph and permute its nodes according to various or
     -   `deg`:  sorted by decreasing total degree
     -   `deg+`: sorted by decreasing outgoing degree
     -   `deg-`: sorted by decreasing ingoing degree
-    -   `core`: sorted by degeneracy ordering (k-core pealing algorithm)
+    -   `core`: sorted by degeneracy ordering (k-core pealing algorithm), for directed or undirected graph
+    -   `core+`, `core-`
 
 #### Options
 -   `-o FILE`: output file in which the order will be printed (the new ID of the node with the old ID u is on line u)
 -   `-d`: flag to specify that the graph is directed (it CAN have both `a b` and `b a` edges)
 -   `-u` (default): flag to specify that the graph is undirected (it CANNOT have both `a b` and `b a` edges). See below how to make a directed graph undirected.
 
-Type `$ ./ord --help` for more information.
+#### Output
+A file of N lines where line i contains the rank of node i according to ORDER.
 
-## Undirected graphs
+
+## Tools
+#### Undirected graphs
 If your INPUT graph is directed and have opposite edges (eg. both `a b` and `b a` are in the edge list), we provide a tool to make it undirected. The OUTPUT edge list will only contain `a b`, while `b a` not written to reduce file size.
 Here is the way to do so:
 
@@ -42,9 +48,20 @@ Here is the way to do so:
 
 `$ ./undirect INPUT OUTPUT`
 
+#### Rank edges
+The `ord` program outputs a rank: for n nodes, it contains n lines, where line i is the new rank of node i.
+
+Here is a tool to renumber an edge list INPUT according to a rank RANK.
+
+`$ make rankedges`
+
+`$ ./rankedges INPUT RANK OUTPUT`
+
+Note that RANK should have been obtained with `ord` applied on dataset INPUT.
+
 ## Contributors
 
-Fabrice Lécuyer (fabrice.lecuyer@lip6.fr)
+Fabrice Lécuyer (<http://fabrice.lecuyer.me>, fabrice.lecuyer@lip6.fr)
 
 Maximilien Danisch (<http://bit.ly/danisch>, maximilien.danisch@gmail.com)
 

@@ -11,6 +11,13 @@ void print_time(chrono::steady_clock::time_point begin, chrono::steady_clock::ti
 	printf("\t- Time = %ldh %ldm %lds %ld\t\tms=%ld\n", h, m, s, diff, diff_copy );
 }
 
+vector<ul> rank_from_order(const vector<ul> &order, const ul &n) {
+  vector<ul> rank; rank.reserve(n);
+  for (ul u = 0; u < n; ++u)
+  	rank[ order[u] ] = u;
+  return rank;
+}
+
 // https://www.cprogramming.com/c++11/c++11-auto-decltype-return-value-after-function.html
 // template <typename Builder>
 // auto makeAndProcessObject (const Builder& builder) -> decltype( builder.makeObject() )

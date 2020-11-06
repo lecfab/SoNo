@@ -8,7 +8,7 @@
 #include <chrono>
 
 #include <vector>
-#include <tuple>
+#include <utility>
 #include <list>
 
 #ifndef DEBUG
@@ -21,6 +21,7 @@
 
 #ifndef NLINKS
 #define NLINKS 100000000
+#define NNODES 1000000
 #endif
 
 #define TimeBegin() auto time_begin = std::chrono::steady_clock::now(); auto time_previous = time_begin, timeRec_previous = time_begin, time_now = time_begin; auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - time_previous).count();
@@ -56,5 +57,7 @@ struct Keyvalue {
 	ul val;
 	Keyvalue(ul key, ul val) : key(key), val(val) {}
 };
+
+std::vector<ul> rank_from_order(const std::vector<ul> &order, const ul &n);
 
 #endif

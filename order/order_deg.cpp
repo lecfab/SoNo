@@ -5,20 +5,24 @@
 
 using namespace std;
 
-inline bool compare_nodedeg (Keyvalue &a, Keyvalue &b) { // sort degree DESC, node ASC
+inline bool compare_nodedeg_desc (Keyvalue &a, Keyvalue &b) { // sort degree DESC, node ASC
 	return ( a.val > b.val or (a.val == b.val and a.key < b.key) );
+}
+inline bool compare_nodedeg_asc (Keyvalue &a, Keyvalue &b) { // sort degree ASC, node ASC
+	return ( a.val < b.val or (a.val == b.val and a.key < b.key) );
 }
 
 
 // --------------------------------------------------
 // ----------------- From edgelist ------------------
 // --------------------------------------------------
-vector<ul> rank_from_deg(const vector<ul> &deg, const ul &n) {
+vector<ul> rank_from_deg(const vector<ul> &deg, const ul &n, bool desc) {
 	vector<Keyvalue> toSort; toSort.reserve(n);
   for (ul u = 0; u < n; ++u)
     toSort.push_back( Keyvalue(u, deg[u]) );
 
-  sort(toSort.begin(), toSort.end(), compare_nodedeg);
+  if(desc) sort(toSort.begin(), toSort.end(), compare_nodedeg_desc);
+  else     sort(toSort.begin(), toSort.end(), compare_nodedeg_asc);
 
   vector<ul> rank; rank.reserve(n);
   for (ul u = 0; u < n; ++u)
@@ -27,21 +31,21 @@ vector<ul> rank_from_deg(const vector<ul> &deg, const ul &n) {
   return rank;
 }
 
-vector<ul> order_deg(Edgelist &g) {
+vector<ul> order_deg(Edgelist &g, bool desc) {
 	Debug("Order degOut from edgelist")
   g.compute_degrees();
-  return rank_from_deg(g.deg, g.n);
+  return rank_from_deg(g.deg, g.n, desc);
 }
-vector<ul> order_degOut(Edgelist &g) {
+vector<ul> order_degOut(Edgelist &g, bool desc) {
 	Debug("Order degOut from edgelist")
   g.compute_degrees();
-  return rank_from_deg(g.degOut, g.n);
+  return rank_from_deg(g.degOut, g.n, desc);
 }
 
-vector<ul> order_degIn(Edgelist &g) {
+vector<ul> order_degIn(Edgelist &g, bool desc) {
 	Debug("Order degIn from edgelist")
   g.compute_degrees();
-  return rank_from_deg(g.degIn, g.n);
+  return rank_from_deg(g.degIn, g.n, desc);
 }
 
 // --------------------------------------------------
@@ -54,7 +58,7 @@ vector<ul> order_degOut(Adjlist &g) {
         toSort.push_back( Keyvalue(u, g.get_degree(u)) );
 
     // cout << "before sort: "<< endl; for (ul i = 0; i < 10; ++i) cout << "\t" << toSort[i].node << " \t " << toSort[i].deg << endl;
-    sort(toSort.begin(), toSort.end(), compare_nodedeg);
+    sort(toSort.begin(), toSort.end(), compare_nodedeg_desc);
 
     vector<ul> rank; rank.reserve(g.n);
     for (ul u = 0; u < g.n; ++u)
@@ -73,7 +77,7 @@ vector<ul> order_degIn(Adjlist &g) {
 	for (ul i = 0; i < g.e; ++i)
 		toSort[g.adj[i]].val ++;
 
-	sort(toSort.begin(), toSort.end(), compare_nodedeg);
+	sort(toSort.begin(), toSort.end(), compare_nodedeg_desc);
 
 	vector<ul> rank; rank.reserve(g.n);
 	for (ul u = 0; u < g.n; ++u)
