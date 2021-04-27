@@ -10,7 +10,12 @@ using namespace std;
 // ----------- General Adjlist structure ------------
 // --------------------------------------------------
 
-Adjlist::Adjlist(Edgelist &g, int edge_factor/*=1*/, int node_factor/*=1*/) : edge_factor(edge_factor), node_factor(node_factor), n(g.n), e(edge_factor * g.e) {
+Adjlist::Adjlist(Edgelist &g, int edge_factor/*=1*/, int node_factor/*=1*/) :
+    edge_factor(edge_factor),
+    node_factor(node_factor),
+    directed(edge_factor == node_factor),
+    n(g.n),
+    e(edge_factor * g.e) {
   cd.reserve(n*node_factor + 1); // warning: .size() will not be defined
 	adj.reserve(g.e*edge_factor);
   ranker_reset();
@@ -58,7 +63,7 @@ void Adjlist::build_from_edgelist(Edgelist &g, bool sorted/*=false*/) {
   vector<ul> deg = compute_degrees(g);
 	compute_cumulated_degrees(deg);
 	build_adj_array(g, deg);
-	if(sorted) sort_neighbours(); // sort neighbours to respect new order
+	if(sorted) sort_neighbours(); // sort neighbours wrt new order
 }
 
 void Adjlist::build_from_edgelist_ranked(Edgelist &g, const vector<ul> &rank) {
@@ -92,7 +97,7 @@ Uadjlist::Uadjlist(Edgelist &g, const vector<ul> &rank) : Adjlist(g, 2) { build_
 vector<ul> Uadjlist::compute_degrees(Edgelist &g) { // warning: if input file is directed, edges may be counted twice
 	vector<ul> deg;
   if(g.deg_computed) {
-    Info("Degrees transfered instead of recomputing");
+    Info("Transfering degrees instead of recomputing");
     deg.reserve(n);
     for (ul u = 0; u < n; u++)
       deg[ranker(u)] = g.deg[u];
@@ -125,7 +130,7 @@ Dadjlist::Dadjlist(Edgelist &g, const vector<ul> &rank) : Adjlist(g, 1) { build_
 vector<ul> Dadjlist::compute_degrees(Edgelist &g) {
 	vector<ul> deg;
   if(g.deg_computed) {
-    Info("Degrees transfered instead of recomputing");
+    Info("Transfering degrees instead of recomputing");
     deg.reserve(n);
     for (ul u = 0; u < n; u++)
       deg[ranker(u)] = g.degOut[u];
@@ -152,10 +157,10 @@ void Dadjlist::build_adj_array(Edgelist &g, vector<ul> &deg) {
 Badjlist::Badjlist(Edgelist &g) : Adjlist(g, 2, 2) { build_from_edgelist(g); }
 Badjlist::Badjlist(Edgelist &g, const vector<ul> &rank) : Adjlist(g, 2, 2) { build_from_edgelist_ranked(g, rank); }
 
-vector<ul> Badjlist::compute_degrees(Edgelist &g) { // warning: if input file is directed, edges may be counted twice
+vector<ul> Badjlist::compute_degrees(Edgelist &g) {
 	vector<ul> deg;
   if(g.deg_computed) {
-    Info("Degrees transfered instead of recomputing");
+    Info("Transfering degrees instead of recomputing");
     deg.reserve(2*n);
     for (ul u = 0; u < n; u++) {
       deg[ranker(u)] = g.degOut[u];

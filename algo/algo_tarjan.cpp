@@ -1,42 +1,15 @@
+// See header for general documentation
+
 #include "algo_tarjan.h"
 #include "../utils/adjlist.h"
 #include "algo_dfs.h"
 
 using namespace std;
 
+// To improve: try to merge several vectors into one
+// To check: starting from u0!=0 does not affect the result
 
-// algo_tarjan ( graph G ) without recursion
-//   DFSstack, SCCstack, lowlink
-//   indices (n, infinity)
-//   foundSCC (n, false)
-//
-//   for w in V
-//     if indices[w] < infinity, continue
-//     push w to DFSstack
-//
-//     while DFSstack is not empty
-//       let u be the top of DFSstack
-//
-//       if indices[u] is infinity
-//         define indicies[u] = lowlink[u] = max(indices)+1
-//         push u to SCCstack
-//       else
-//         lowlink[u] = min(lowlink[u], backtrack)
-//
-//       if u has a neighbour v
-//         if indices[v] is infinity
-//           push v to DFSstack
-//         else if not foundSCC[v]
-//           lowlink[u] = min(lowlink[u], indices[v])
-//
-//       else (u has no more neighbour)
-//         if lowlink[u] is index[u]
-//           create a new SCC
-//           for each v on SCCstack until u
-//             put v on the SCC
-//             foundSCC[v] is true
-
-vector<ul> algo_tarjan(const Adjlist &g) {
+vector<ul> algo_tarjan(const Adjlist &g, ul u0) {
   vector<Nodeneigh> DFSstack; DFSstack.reserve(g.n);
   vector<ul> SCCstack; SCCstack.reserve(g.n);
   vector<ul> indices(g.n, g.n + 2);
@@ -47,13 +20,13 @@ vector<ul> algo_tarjan(const Adjlist &g) {
   ul index = 0;
   ul backtrack = g.n + 2;
 
-  for(ul root=0; root<g.n; ++root) {
+  for(ul c=0; c<g.n; ++c) { // loop to find several components
+    ul root = (c + u0) % g.n; // allows to start from any node u0
     if(indices[root] < g.n) continue; // u was already found
     Debug("Start new exploration from " << root)
-
     DFSstack.push_back(Nodeneigh(g, root));
 
-    while (!DFSstack.empty()) {
+    while (!DFSstack.empty()) { // take u in a DFS order
       Nodeneigh &deepest = DFSstack.back();
       ul u = deepest.node;
       if(indices[u] > g.n) { // node seen for the first time, added to the SCC stack
@@ -77,8 +50,8 @@ vector<ul> algo_tarjan(const Adjlist &g) {
           Debug("\tCreate SCC " << SCCsizes.size())
           ul size = 0, v;
           do {
-            Debug("\t\t" << v << " added to SCC " << indices[v])
             v = SCCstack.back();
+            Debug("\t\t" << v << " added to SCC " << indices[v])
             indices[v] = SCCsizes.size();
             foundSCC[v] = true;
             size ++;
@@ -89,7 +62,7 @@ vector<ul> algo_tarjan(const Adjlist &g) {
 
         DFSstack.pop_back();
       }
-      else {
+      else { // consider next neighbour v of u
         ul v = *deepest.neigh;
         deepest.neigh ++;
 
@@ -101,21 +74,18 @@ vector<ul> algo_tarjan(const Adjlist &g) {
           Debug("\tneighbour " << v <<" of index "<< indices[v] << " vs lowlink " << lowlink[u] << " (" << lowlink[v] <<")")
           lowlink[u] = min(lowlink[u], indices[v]);
         }
-        else {
+        else { // ignore v
           Debug("\tFound neighbour " << v << " with SCC " << indices[v])
         }
       }
     }
   }
 
-  ul biggestIndex = 0, biggestSize = 0;
-  for (size_t i = 0; i < SCCsizes.size(); i++) {
-    if(SCCsizes[i] > biggestSize) {
-      biggestIndex = i;
+  ul biggestSize = 0;
+  for (size_t i = 0; i < SCCsizes.size(); i++)
+    if(SCCsizes[i] > biggestSize)
       biggestSize = SCCsizes[i];
-    }
-    //cout << "SCC " << i << " has size " << SCCsizes[i] << endl;
-  }
+  Info("Biggest strongly connected component has size " << biggestSize << " out of " << g.n)
 
   return indices;
 }

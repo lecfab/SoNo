@@ -23,6 +23,7 @@ struct NeighIter {
 
 struct Adjlist {
 public:
+  bool directed;
 	int edge_factor;
   int node_factor;
 	ul n;//number of nodes

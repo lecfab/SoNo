@@ -28,8 +28,22 @@ void Edgelist::sort_edges() {
 }
 
 void Edgelist::apply_rank(const vector<ul> &rank) {
+  compute_degrees(true);
   for(ul i=0; i<e; i++)
     edges[i] = edge(rank[edges[i].first], rank[edges[i].second]);
+  compute_degrees(true);
+}
+
+void Edgelist::to_dag() { // swap edges to obtain a directed acyclic graph
+  compute_degrees();
+  for(ul i=0; i<e; i++) {
+    ul u = edges[i].first, v = edges[i].second;
+    if(u > v) {
+      edges[i] = edge(v, u);
+      degOut[u] --; degIn[u] ++;
+      degOut[v] ++; degIn[v] --;
+    }
+  }
 }
 
 void Edgelist::print_c(const char* output) const {
@@ -55,25 +69,26 @@ ul Edgelist::get_deg(const ul &u) {
   return degIn[u] + degOut[u];
 }
 
-void Edgelist::print_some(int a) const {
+void Edgelist::print_some(ul a) const {
   if(a>e) a=e;
   cout << "Printing " << a << " edges" << endl;
   for(ul i=0; i<a; ++i)
     cout <<"\t"<< edges[i].first << " " << edges[i].second << endl;
 }
 
-void Edgelist::compute_degrees() {
-  if(deg_computed) return;
-  degOut.reserve(n);
-  degIn.reserve(n);
-  deg.reserve(n);
+void Edgelist::compute_degrees(bool force) {
+  if(deg_computed and !force) return;
+  degOut = vector<ul>(n, 0);
+  degIn = vector<ul>(n, 0);
 	for (auto &edge : edges) {
     ++degOut[edge.first];
     ++degIn[edge.second];
   }
-  deg_computed = true;
 
+  deg.reserve(n);
   for (ul u = 0; u < n; ++u) {
     deg[u] = degIn[u] + degOut[u];
   }
+
+  deg_computed = true;
 }

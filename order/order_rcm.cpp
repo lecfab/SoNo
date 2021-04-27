@@ -1,5 +1,4 @@
-// Reverse Cuthill–McKee algorithm
-// https://en.wikipedia.org/wiki/Cuthill-McKee_algorithm
+// See header for general documentation
 
 #include <algorithm>
 #include "order_rcm.h"
@@ -13,10 +12,18 @@
 using namespace std;
 
 
-vector<ul> order_rcm(Edgelist &h) {
+vector<ul> order_rcm(Edgelist &h, bool directed) {
   vector<ul> rank_deg = order_deg(h, false); // degree ASC
-  Dadjlist g(h, rank_deg);
-  vector<ul> rank_bfs = rank_from_order(algo_bfs(g), g.n); // Cuthill–McKee
+  vector<ul> rank_bfs;
+
+  if(directed) {
+    Dadjlist g(h, rank_deg);
+    rank_bfs = rank_from_order(algo_bfs(g)); // Cuthill–McKee
+  }
+  else {
+    Uadjlist g(h, rank_deg);
+    rank_bfs = rank_from_order(algo_bfs(g)); // Cuthill–McKee
+  }
 
   vector<ul> rank; rank.reserve(h.n);
   for (ul u = 0; u < h.n; u++) {

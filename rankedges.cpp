@@ -16,9 +16,9 @@ using namespace std;
 int main(int argc, char** argv){
 	TimeBegin()
   if(argc <= 3) {
-    cout << "./undirect EDGES RANK OUTPUT" << endl;
+    cout << "./rankedges EDGES RANK OUTPUT" << endl;
     cout << "* EDGES is the initial edge list" << endl;
-    cout << "* RANK is the list of new indeces for each node" << endl;
+    cout << "* RANK is the list of new indices for each node" << endl;
     cout << "* OUTPUT is the file to output the resulting edgelist" << endl;
     cout << "returns a (sorted) edge list where nodes have new indices defined by RANK" << endl;
     return 1;

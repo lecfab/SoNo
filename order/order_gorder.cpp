@@ -5,6 +5,7 @@
 #include "../utils/adjlist.h"
 #include "../utils/tools.h"
 #include "../utils/unitheap.h"
+#include "../utils/inout.h"
 #include "order_rcm.h"
 
 using namespace std;
@@ -12,17 +13,16 @@ using namespace std;
 vector<ul> complete_gorder(Edgelist &h, ul window) {
   Info("Applying RCM order");
   vector<ul> rank_rcm = order_rcm(h);
-  // for(int i=0;i<100&&i<h.n;i++) cout << i << " ranks " << rank_rcm[i] << endl;
+  // c_printorder(rank_rcm, h.n, "ord_1.txt");
+
   Info("Converting to bidirected adjacency list");
   Badjlist g(h, rank_rcm);
-  // g.print_some(100);
 
-  Info("Applying Gorder");
+  Info("Applying Gorder with window "<< window);
   vector<ul> rank_gorder = order_gorder(g, window);
+  // c_printorder(rank_gorder, h.n, "ord_2.txt");
 
-  // Edgelist hh = g.to_edgelist_ranked(true, rank_gorder);
-  // hh.print_some(100);
-
+  Debug("composing Gorder with RCM")
   vector<ul> rank; rank.reserve(g.n);
   for (ul u = 0; u < g.n; u++) {
     rank[u] = rank_gorder[rank_rcm[u]];
@@ -36,75 +36,69 @@ vector<ul> order_gorder(const Badjlist &g, ul window) {
   vector<ul> order; order.reserve(g.n);
   UnitHeap heap(g.n);
 
-  ul order_pointer = g.n-1;
+  vector<ul> isolates; isolates.reserve(heap.huge);
   for (ul u = 0; u < g.n; ++u) {
-    // I think heap can deal with isolated nodes with no special intervention
-    // if(g.get_deg(u) == 0) {// put isolated nodes at the end
-    //   Debug(u << " isolated with rank " << order_pointer)
-    //   order[order_pointer--] = u;
-    // }
-    // else
+    // heap can deal with isolated nodes with no special intervention
+    if(g.get_deg(u) == 0) {// put isolated nodes at the end
+      isolates.push_back(u);
+      // Debug(u << " isolated with rank " << isolates.size())
+    }
+    else
       heap.InsertElement(u, g.get_degIn(u));
   }
+  Debug("Heapsize "<<heap.heapsize)
 
   heap.ReConstruct(); // heap indegree DESC sort
+  Debug("Heapsize "<<heap.heapsize)
 
-  // ul tmp_deg = 0, tmp_u=heap.none;
-  // for (ul u = 0; u < g.n; ++u) {
-  //   if(g.get_deg(u) > tmp_deg) { tmp_deg = g.get_deg(u); tmp_u=u;}
-  //   else if(g.get_deg(u) == 0) {
-  //     order[order_pointer--] = u;
-  //     heap.DeleteElement(u);
-  //   }
-  // }
-  //
-  // ul hub = tmp_u;
   ul hub = heap.top;
-  order_pointer = 0;
-  order[order_pointer++] = hub;
-
+  order.push_back(hub);
   heap.DeleteElement(hub);
 
   move_window(g, heap, hub, hub);
 
   while(heap.heapsize > 0) {
-    Debug("extract")
+
     ul new_node = heap.ExtractMax();
-    Debug(new_node << " with rank " << order_pointer)
-    order[order_pointer++] = new_node;
+    // Debug(new_node << " with rank " << order.size())
+    if(new_node >= g.n) {
+      Alert("Pushing infinity "<<new_node<<" while remain "<<heap.heapsize)
+      heap.safety_check();
+      exit(1);
+    }
+    order.push_back(new_node);
 
     ul old_node = new_node;
-    if(order_pointer >= window+1) // remove oldest node of window
-      old_node = order[order_pointer-window-1];
+    if(order.size() > window) // remove oldest node of window
+      old_node = order[order.size()-window-1];
+    // else Debug("no window"<<endl)
     move_window(g, heap, new_node, old_node);
   }
 
-  // vector<ul> rank; rank.reserve(g.n);
-  // for (ul i = 0; i < g.n; ++i)
-  //   rank[ order[i] ] = i;
-  // return rank;
-  Debug("Gorder done")
-  while(order_pointer<g.n) Alert(order[order_pointer] <<" remains with rank "<<order_pointer++)
+  order.insert(order.end(), isolates.begin(), isolates.end());
+
+  if(order.size()<g.n) Alert(g.n-order.size() <<" are missing ")
+  // Info("Gorder done!")
+
   return rank_from_order(order, g.n);
 }
 
+
+
 void move_window(const Badjlist &g, UnitHeap &heap, const ul &new_node, const ul &old_node) {
-  auto old_parent = g.neighIn_beg(old_node);
-  auto new_parent = g.neighIn_beg(new_node);
+  auto old_parent = g.neighIn_beg(old_node); // note that neighbours are sorted so we can
+  auto new_parent = g.neighIn_beg(new_node); // compute their intersection in linear time
 
   if(old_node == new_node) // trick for the case where there is no old_node
     old_parent = g.neighIn_end(old_node); // put directly at the END to ignore
-  else {
+  else { // decrease children of old node
     if(g.get_degOut(old_node) <= heap.huge)
       for(auto child : g.neighOut_iter(old_node))
         heap.lazyIncrement(child, -locality_child(g, old_node, child));
   }
 
-  if(g.get_degOut(new_node) <= heap.huge)
-    for(auto child : g.neighOut_iter(new_node))
-      heap.lazyIncrement(child, +locality_child(g, new_node, child));
-
-  while(true) { // parents: increase new, decrease old, ignore common
+  vector<ul> tmp_old_parents, tmp_new_parents;
+  while(true) { // find parents that are not in the intersection of old and new node
     int factor = -1;
     if(old_parent >= g.neighIn_end(old_node)) {
       if(new_parent >= g.neighIn_end(new_node)) break; // no parents remain
@@ -119,23 +113,31 @@ void move_window(const Badjlist &g, UnitHeap &heap, const ul &new_node, const ul
       if(*new_parent < *old_parent) factor = 1;
     }
 
-    ul node, parent;
     if(factor == -1) {
-      node = old_node;
-      parent = *old_parent;
+      if(g.get_degOut(*old_parent) <= heap.huge) tmp_old_parents.push_back(*old_parent);
       old_parent++;
     }
     else {
-      node = new_node;
-      parent = *new_parent;
+      if(g.get_degOut(*new_parent) <= heap.huge) tmp_new_parents.push_back(*new_parent);
       new_parent++;
     }
-    if(g.get_degOut(parent) > heap.huge) continue;
-    heap.lazyIncrement(parent, factor*locality_parent(g, node, parent));
+  }
 
+  for(auto &parent: tmp_old_parents) { // decrease parents and siblings of old node
+    heap.lazyIncrement(parent, -locality_child(g, old_node, parent));
     for (auto sibling : g.neighOut_iter(parent)) {
-      if(sibling == node) continue;
-      heap.lazyIncrement(sibling, factor*locality_sibling(g, node, sibling));
+      if(sibling != old_node) heap.lazyIncrement(sibling, -locality_sibling(g, old_node, sibling));
+    }
+  }
+
+  if(g.get_degOut(new_node) <= heap.huge) // increase children of new node
+    for(auto child : g.neighOut_iter(new_node))
+      heap.lazyIncrement(child, +locality_child(g, new_node, child));
+
+  for(auto &parent: tmp_new_parents) { // increase parents and siblings of new node
+    heap.lazyIncrement(parent, +locality_child(g, new_node, parent));
+    for (auto sibling : g.neighOut_iter(parent)) {
+      if(sibling != new_node) heap.lazyIncrement(sibling, +locality_sibling(g, new_node, sibling));
     }
   }
 }

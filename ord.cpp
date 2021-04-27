@@ -16,11 +16,15 @@
 #include "utils/edgelist.h"
 #include "order/order_rand.h"
 #include "order/order_deg.h"
-#include "order/order_core.h"
 #include "order/order_rcm.h"
 #include "order/order_gorder.h"
+#include "order/order_ldg.h"
+#include "order/order_minla.h"
+#include "order/order_slashburn.h"
 #include "algo/algo_tarjan.h"
 #include "algo/algo_kcore.h"
+#include "algo/algo_dfs.h"
+#include "algo/algo_bfs.h"
 
 using namespace std;
 
@@ -31,12 +35,24 @@ int main(int argc, char** argv) {
   CLI::App app{"Read a list of edges and permute its nodes according to various orders. See README.md for more information."};
 
   string filename, order_name="original", algo_name="no", output_file="ord.auto.txt";
-  bool directed;
+  bool directed; ul number = 0;
   app.add_option("file", filename, "Text file: list of `a b` edges with nodes IDs ranging from 0 to N-1")->required();
   app.add_option("order", order_name, "Order used to relabel the nodes")->required()
-    ->check(CLI::IsMember({"original", "rand", "deg+", "deg-", "core", "core+", "core-", "icore", "icore+", "icore-", "rcm", "gorder"}, CLI::ignore_case));
-  app.add_flag("-d,!-u,--directed,!--undirected", directed, "Specify if the graph is directed or undirected; multiple edges are not accepted");
+    ->check(CLI::IsMember({
+      "original",
+      "rand",
+      "deg+", "deg-", "deg", "degDesc", "degAsc",
+      "core", "core+", "core-",
+      "icore", "icore+", "icore-",
+      "rcm","dfs","bfs",
+      "gorder",
+      "ldg",
+      "slashburn",
+      "minla","minloga"}, CLI::ignore_case));
+  app.add_flag("-d,!-u,--directed,!--undirected", directed,
+      "Specify if the graph is directed or undirected; multiple edges are not accepted");
   app.add_option("-o,--output", output_file, "File in which to output the order")->capture_default_str();
+  app.add_option("-n", number, "Numeric parameter used in different orders")->capture_default_str();
 
   CLI11_PARSE(app, argc, argv);
 
@@ -46,15 +62,13 @@ int main(int argc, char** argv) {
   ul n = 0;
   vector<ul> rank;
 
-
 	// --------------------------------------------------
 	// --- Sort after reading without data-structure ----
 	// --------------------------------------------------
 
 	if(order_name == "original" or order_name == "rand") {
 		n = get_number_vertices(file);
-    rank.reserve(n);
-		for (ul u = 0; u < n; ++u) rank.push_back(u);
+    rank = order_identity(n);
 		TimeStep("Read")
 
 		if(order_name == "rand") {
@@ -79,12 +93,14 @@ int main(int argc, char** argv) {
 		Info("Number of edges: " << h.e)
 		TimeStep("Read")
 
-		if(order_name == "deg") rank = order_deg(h);
+    if(order_name == "deg" or order_name == "degDesc") rank = order_deg(h, /*desc=*/true);
+    else if(order_name == "degAsc") rank = order_deg(h, /*desc=*/false);
     else if(order_name == "deg+") rank = order_degOut(h);
 		else if(order_name == "deg-") rank = order_degIn(h);
 		else if(order_name == "rcm") rank = order_rcm(h);
     else if(order_name == "gorder") {
-      rank = complete_gorder(h);
+      number = (number == 0) ? 5 : number;
+      rank = complete_gorder(h, number);
       // h.apply_rank(rank);
       // h.sort_edges();
     }
@@ -110,9 +126,15 @@ int main(int argc, char** argv) {
 
       if(order_name == "core") rank = algo_kcore(*g).rank;
 			else if(order_name == "icore") rank = algo_icore(*g).rank;
+			else if(order_name == "dfs") rank = algo_dfs(*g);
+			else if(order_name == "bfs") rank = rank_from_order(algo_bfs(*g));
 			else if(order_name == "tarjan") rank = algo_tarjan(*g);
+			else if(order_name == "ldg") rank = order_ldg(*g);
+      else if(order_name == "minla")  rank = order_minla(*g);
+      else if(order_name == "minloga")  rank = order_minloga(*g);
+      else if(order_name == "slashburn")  rank = order_slashburn(*g);
 			else { Alert("Unknown order `" << order_name <<"`"); return 1; }
-      delete g;
+      // delete g;
     }
 	}
 

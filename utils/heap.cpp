@@ -6,7 +6,6 @@
 using namespace std;
 
 Bheap::Bheap(ul n_max) : n_max(n_max) {
-	ul i;
 	n = 0;
 	pt.reserve(n_max);
 	kv.reserve(n_max);
@@ -17,30 +16,46 @@ void Bheap::binary_swap(ul i, ul j) {
 	std::swap(kv[i], kv[j]);
 }
 
-void Bheap::bubble_up(ul child) {
+ul Bheap::bubble_up(ul child) {
 	while (child > 0) {
 		ul parent = (child-1) / 2;
 		if (kv[parent].val <= kv[child].val) break;
 		binary_swap(child, parent);
 		child = parent;
 	}
+  return child;
 }
 
-void Bheap::bubble_down() {
-	ul parent=0, left=1, right=2, child;
-	while(left < n) {
+ul Bheap::bubble_down(ul parent) {
+	while(2*parent + 1 < n) {
+    ul left = 2*parent + 1, right = left + 1;
+    ul child = left;
 		if(right < n and kv[right].val < kv[left].val)
 			 child = right;
-		else child = left;
 
 		if(kv[parent].val <= kv[child].val) break;
 
 		binary_swap(parent, child);
 		parent = child;
-		left = 2*parent + 1;
-		right = left + 1;
 	}
+  return parent;
 }
+
+// void Bheap::bubble_down() {
+// 	ul parent=0, left=1, right=2, child;
+// 	while(left < n) {
+// 		if(right < n and kv[right].val < kv[left].val)
+// 			 child = right;
+// 		else child = left;
+//
+// 		if(kv[parent].val <= kv[child].val) break;
+//
+// 		binary_swap(parent, child);
+// 		parent = child;
+// 		left = 2*parent + 1;
+// 		right = left + 1;
+// 	}
+// }
 
 void Bheap::insert(Keyvalue new_kv) {
 	kv.push_back(new_kv);
@@ -54,24 +69,42 @@ ul Bheap::key_to_val(ul key) {
 }
 
 void Bheap::update_decrement(ul key){
-	ul i = pt[key];
-	if (i > n_max) return;
+	if (!contains(key)) return;
+  ul i = pt[key];
 	kv[i].val --;
 	bubble_up(i);
 }
+void Bheap::update_increment(ul key){
+	if (!contains(key)) return;
+  ul i = pt[key];
+	kv[i].val ++;
+	bubble_down(i);
+}
 
 void Bheap::update(ul key, ul new_val){
-	ul i = pt[key];
-	if (i > n_max) return;
+	if (!contains(key)) return;
+  ul i = pt[key];
 	kv[i].val = new_val;
-	bubble_up(i);
+	bubble_down(bubble_up(i));
 }
 
 Keyvalue Bheap::popmin() {
 	Keyvalue min = kv[0];
-	pt[min.key] = n_max+1;
-	kv[0] = kv[--n];
-	pt[kv[0].key] = 0;
-	bubble_down();
+	remove(min.key);
 	return min;
+}
+Keyvalue Bheap::getmin() {
+	return kv[0];
+}
+
+void Bheap::remove(ul key) {
+  ul i = pt[key];
+  kv[i] = kv[--n];
+  pt[kv[i].key] = i;
+  pt[key] = n_max + 1;
+	bubble_down(i);
+}
+
+bool Bheap::contains(ul key) {
+  return pt[key] <= n_max;
 }

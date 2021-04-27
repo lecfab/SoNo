@@ -1,8 +1,13 @@
-#ifndef _GORDER_H
-#define _GORDER_H
+#ifndef ORDER_GORDER_H
+#define ORDER_GORDER_H
+
+// Hao Wei, Jeffrey Xu Yu, Can Lu, and Xuemin Lin.
+// Speedup Graph Processing by Graph Ordering.
+// In Proceedings of SIGMOD '16, 2016.
 
 #include <cmath>
 #include "../utils/tools.h"
+
 struct Edgelist;
 struct Badjlist;
 struct UnitHeap;

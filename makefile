@@ -3,14 +3,14 @@ CC=g++ -std=c++14 -fconcepts
 
 DEBUG?=0 # optimisation option
 
-EXEC=read ord undirect rankedges
+EXEC=benchmark alg ord undirect rankedges parametrise compression
 MF=makefile # recompile when Makefile has been modified
 
 ifeq ($(DEBUG), 1)
 	CFLAGS=-Og -Wextra -g3 -D DEBUG
 	o=debug.o
 else
-	CFLAGS=-Ofast # https://cpluspluspedia.com/fr/tutorial/4708/compiler-et-construire
+	CFLAGS=-Ofast #-Wall # https://cpluspluspedia.com/fr/tutorial/4708/compiler-et-construire
 	o=o
 endif
 
@@ -28,12 +28,18 @@ ALGOS_H = 	algo/algo_nq.h \
 			algo/algo_bellman.h \
 			algo/algo_diameter.h \
 			algo/algo_kcore.h \
-			algo/algo_tarjan.h
-ORDERS_H = 	order/order_core.h \
-			order/order_deg.h \
+			algo/algo_tarjan.h \
+			algo/algo_pagerank.h \
+			algo/algo_dominatingset.h \
+			algo/algo_minuncut.h \
+			algo/algo_triangles.h
+ORDERS_H = 	order/order_deg.h \
 			order/order_rand.h \
 			order/order_rcm.h \
-			order/order_gorder.h
+			order/order_gorder.h \
+			order/order_ldg.h \
+			order/order_minla.h \
+			order/order_slashburn.h
 
 UTILS_O =	$(UTILS_H:.h=.$(o))
 ALGOS_O = 	$(ALGOS_H:.h=.$(o))
@@ -41,7 +47,10 @@ ORDERS_O = 	$(ORDERS_H:.h=.$(o))
 
 all: $(EXEC)
 
-read: read.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
+benchmark: benchmark.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
+	$(CC) $^ $(CFLAGS) -o $@
+
+alg: alg.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
 	$(CC) $^ $(CFLAGS) -o $@
 
 ord: ord.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O) #algo/algo_tarjan.$(o)
@@ -53,18 +62,29 @@ undirect: undirect.$(o) $(UTILS_O)
 rankedges: rankedges.$(o) $(UTILS_O)
 	$(CC) $^ $(CFLAGS) -o $@
 
+parametrise: parametrise.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
+	$(CC) $^ $(CFLAGS) -o $@
 
-read.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
+compression: compression.$(o) $(UTILS_O) $(ALGOS_O) #$(ORDERS_O)
+	$(CC) $^ $(CFLAGS) -o $@
+
+benchmark.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
+alg.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
 ord.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
 undirect.$(o): $(UTILS_H)
 rankedges.$(o): $(UTILS_H)
+parametrise.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
+compression.$(o): $(UTILS_H) $(ALGOS_H) #$(ORDERS_H)
 
 
+algo/algo_%.$(o): $(UTILS_H)
+order/order_%.$(o): $(UTILS_H)
 algo/algo_diameter.$(o): algo/algo_bellman.h
 algo/algo_tarjan.$(o): algo/algo_dfs.h
-order/order_core.$(o): algo/algo_kcore.h
+algo/algo_minuncut.$(o): order/order_deg.h
 order/order_rcm.$(o): order/order_deg.h algo/algo_bfs.h
 order/order_gorder.$(o): order/order_rcm.h
+order/order_ldg.$(o): algo/algo_bfs.h
 
 
 # utils/CLI11.$(o): utils/CLI11.h

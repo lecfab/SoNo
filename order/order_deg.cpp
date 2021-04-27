@@ -32,7 +32,7 @@ vector<ul> rank_from_deg(const vector<ul> &deg, const ul &n, bool desc) {
 }
 
 vector<ul> order_deg(Edgelist &g, bool desc) {
-	Debug("Order degOut from edgelist")
+	Debug("Order deg from edgelist")
   g.compute_degrees();
   return rank_from_deg(g.deg, g.n, desc);
 }

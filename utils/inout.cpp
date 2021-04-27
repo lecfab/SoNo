@@ -26,7 +26,13 @@ vector<ul> read_order(ifstream &file) {
 // Experiment: FILE* seems to be 20x faster than ofstream <<
 void c_printorder(const vector<ul> &rank, const ul n, const char* output){
   FILE *file=fopen(output,"w");
-  for (ul i=0; i < n; ++i) { fprintf(file, "%lu\n", rank[i]); }
+  for (ul u=0; u < n; ++u) {
+    if(rank[u] >= n) {
+      Alert("rank " << u << " is " << rank[u])
+      continue;
+    }
+    fprintf(file, "%lu\n", rank[u]);
+  }
   fclose(file);
 }
 

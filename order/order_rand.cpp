@@ -11,16 +11,12 @@ using namespace std;
 
 vector<ul> order_rand(Adjlist &g) {
 	Debug("Order rand")
-    vector<ul> rank;
-    rank.reserve(g.n);
-    for (ul i = 0; i < g.n; ++i)
-        rank.push_back(i);
+  vector<ul> rank = order_identity(g.n);
+  srand ( unsigned ( time(0) ) );
+  random_shuffle( rank.begin(), rank.end() );
+  // auto rd = random_device {};
+  // auto rng = default_random_engine { rd() };
+  // shuffle(rank.begin(), rank.end(), rng);
 
-    srand ( unsigned ( time(0) ) );
-    random_shuffle( rank.begin(), rank.end() );
-    // auto rd = random_device {};
-    // auto rng = default_random_engine { rd() };
-    // shuffle(rank.begin(), rank.end(), rng);
-
-    return rank;
+  return rank;
 }

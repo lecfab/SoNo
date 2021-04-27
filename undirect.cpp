@@ -14,7 +14,7 @@ using namespace std;
 
 int main(int argc, char** argv){
 	TimeBegin()
-  if(argc <= 2) {
+  if(argc <= 2) { // secret arg added to allow for directed cleansing
     cout << "./undirect INPUT OUTPUT" << endl;
     cout << "with INPUT the initial edgelist, OUTPUT the file to output the trimmed edgelist" << endl;
     cout << "returns a (sorted) list of non-redundant edges (if both `a b` and `b a` existed, only `a b` is kept)" << endl;
@@ -27,8 +27,9 @@ int main(int argc, char** argv){
 	edges.reserve(NLINKS);
 	ul n=0;
 	ul u, v;
+  if(argc > 3) Info("Directed graph cleansing")
 	while(filein >> u >> v) {
-    if(u > v) swap(u, v);
+    if(argc == 3 and u > v) swap(u, v);
 		edges.push_back(make_pair(u, v));
 		n = max3(n, u, v);
     // cout << "read " << u << " " << v << endl;
@@ -48,7 +49,10 @@ int main(int argc, char** argv){
   u = v = n + 2;
   ul e2 = 0;
 	for (ul i=0; i < e; ++i) {
-    if(edges[i].second == v and edges[i].first == u) continue;
+    if(edges[i].second == v and edges[i].first == u) {
+      // Debug(u<<" " << v)
+      continue;
+    }
     e2 ++;
     u = edges[i].first;
     v = edges[i].second;

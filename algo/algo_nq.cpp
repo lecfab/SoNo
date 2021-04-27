@@ -1,3 +1,5 @@
+// See header for general documentation
+
 #include "algo_nq.h"
 #include <ctime>
 #include <cmath>
@@ -10,16 +12,13 @@ ul algo_nq(const Adjlist &g, ul repeat) {
 	ul result = 0;
 	while(repeat--) {
 		ul u = rand() % g.n;
-		//cout << "Neighbours of " << u ;
-		ul neigh = 0;
-		ul neigh2 = 0;
+		ul neigh = 0, neigh2 = 0;
 		for (ul i = g.cd[u]; i < g.cd[u+1]; ++i) {
 			ul v = g.adj[i];
-			//cout << "\t" << v << endl;
 			neigh++;
-			neigh2 += pow(g.get_degree(v), 2);
+      neigh2 += g.get_degree(v); // d(v) may already be in cache if the node ordering is clever
+			// neigh2 += pow(g.get_degree(v), 2); // d^2 takes a little while to compute
 		}
-		//cout << " are " << neigh << endl;
 		result += neigh2;
 	}
 	return result;

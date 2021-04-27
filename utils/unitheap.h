@@ -4,12 +4,9 @@
 #define _UNITHEAP_H
 
 #include "tools.h"
-#include <algorithm>
 #include <climits>
 #include <cstdlib>
-#include <vector>
 
-const int INITIALVALUE = 0;
 
 class ListElement {
 public:
@@ -22,7 +19,6 @@ class HeadEnd {
 public:
   ul first;
   ul second;
-  // HeadEnd() { first = second = -1; }
 };
 
 class UnitHeap {
@@ -38,19 +34,35 @@ public:
   ul none;                     // integer that cannot be a node index
   const int infty = INT_MAX/2;
 
+  // reserve memory
   UnitHeap(ul size);
-  // ~UnitHeap();
+
+  // prepare insertion of node by compensating the key with a negative update
   void InsertElement(const ul index, const int key);
-  void DeleteElement(const ul index);
-  ul ExtractMax();
-  void IncrementKey(const ul index);
-  void lazyIncrement(const ul index, const int up);
-  void DecrementKey(const ul index);
-  void DecreaseTop();
+  // oncle all elements are inserted, create headers and linked list
   void ReConstruct();
+
+  // update headers when element is removed
   void erase_key_element(const ul index, const ul next, const ul prev);
+
+  // find best element and output it
+  ul ExtractMax();
+  // update top and decrease it if necessary
+  void DecreaseTop();
+  // delete a node from linked list, update headers
+  void DeleteElement(const ul index);
+
+  // change element key: increase update if possible otherwise call IncrementKey
+  void lazyIncrement(const ul index, const int up);
+  // increment key, move element in linked list, update headers
+  void IncrementKey(const ul index);
+
+
+  // debug
   void print_status();
   void safety_check();
+
+  // void DecrementKey(const ul index);
 };
 
 #endif

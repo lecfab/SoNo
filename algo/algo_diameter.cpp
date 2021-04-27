@@ -1,5 +1,6 @@
-#include "algo_diameter.h"
+// See header for general documentation
 
+#include "algo_diameter.h"
 #include "../utils/tools.h"
 #include "../utils/adjlist.h"
 #include "algo_bellman.h"
@@ -12,9 +13,9 @@ ul algo_diameter(const Adjlist &g, ul repeat) {
 	srand (time(NULL));
 
 	ul diameter = 0;
-	while(repeat--) {
+	for(size_t i=0; i<repeat; ++i) {
 		ul u = rand() % g.n;
-		vector<ul> dist = source_bellman_front(g, u);
+		vector<ul> dist = algo_bellman_complete(g, u);
 
 		ul v=u;
 		for (ul w = 0; w < g.n; ++w)
@@ -26,6 +27,8 @@ ul algo_diameter(const Adjlist &g, ul repeat) {
 			//cout << "Updated diameter "<<diameter <<"\t from " << u << " to " << v << endl;
 		}
 	}
+
+  Info("Approximate diameter ("<<repeat<<" runs): " << diameter)
 
 	return diameter;
 }
