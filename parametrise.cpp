@@ -23,7 +23,7 @@ int main(int argc, char** argv){
   CLI::App app{"Test an algorithm with different parameters to tune them efficiently."};
 
   string filename, algo_name, output_file="parametrise.auto.txt";
-  int range = 9, number = 100;
+  int range = 9, number = 1;
   // bool directed;
   app.add_option("file", filename, "Text file: list of `a b` edges with nodes IDs ranging from 0 to N-1")->required();
   app.add_option("algo", algo_name, "Algorithm with parameters to tune")->required()

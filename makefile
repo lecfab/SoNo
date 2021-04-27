@@ -1,9 +1,9 @@
-CC=g++ -std=c++14 -fconcepts
+CC=g++ -std=c++14 #-fconcepts
 # CFLAGS=-O9 -lm
 
-DEBUG?=0 # optimisation option
+DEBUG?=0 # debug option
 
-EXEC=benchmark alg ord undirect rankedges parametrise compression
+EXEC=benchmark ord rankedges parametrise
 MF=makefile # recompile when Makefile has been modified
 
 ifeq ($(DEBUG), 1)
@@ -30,9 +30,7 @@ ALGOS_H = 	algo/algo_nq.h \
 			algo/algo_kcore.h \
 			algo/algo_tarjan.h \
 			algo/algo_pagerank.h \
-			algo/algo_dominatingset.h \
-			algo/algo_minuncut.h \
-			algo/algo_triangles.h
+			algo/algo_dominatingset.h
 ORDERS_H = 	order/order_deg.h \
 			order/order_rand.h \
 			order/order_rcm.h \
@@ -50,13 +48,7 @@ all: $(EXEC)
 benchmark: benchmark.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
 	$(CC) $^ $(CFLAGS) -o $@
 
-alg: alg.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
-	$(CC) $^ $(CFLAGS) -o $@
-
-ord: ord.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O) #algo/algo_tarjan.$(o)
-	$(CC) $^ $(CFLAGS) -o $@
-
-undirect: undirect.$(o) $(UTILS_O)
+ord: ord.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
 	$(CC) $^ $(CFLAGS) -o $@
 
 rankedges: rankedges.$(o) $(UTILS_O)
@@ -65,16 +57,10 @@ rankedges: rankedges.$(o) $(UTILS_O)
 parametrise: parametrise.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)
 	$(CC) $^ $(CFLAGS) -o $@
 
-compression: compression.$(o) $(UTILS_O) $(ALGOS_O) #$(ORDERS_O)
-	$(CC) $^ $(CFLAGS) -o $@
-
 benchmark.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
-alg.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
 ord.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
-undirect.$(o): $(UTILS_H)
 rankedges.$(o): $(UTILS_H)
 parametrise.$(o): $(UTILS_H) $(ALGOS_H) $(ORDERS_H)
-compression.$(o): $(UTILS_H) $(ALGOS_H) #$(ORDERS_H)
 
 
 algo/algo_%.$(o): $(UTILS_H)
@@ -85,10 +71,6 @@ algo/algo_minuncut.$(o): order/order_deg.h
 order/order_rcm.$(o): order/order_deg.h algo/algo_bfs.h
 order/order_gorder.$(o): order/order_rcm.h
 order/order_ldg.$(o): algo/algo_bfs.h
-
-
-# utils/CLI11.$(o): utils/CLI11.h
-# 	$(CC) -c $< $(CFLAGS) -o $@
 
 %.debug.o: %.cpp $(MF)
 	$(CC) -c $< $(CFLAGS) -o $@

@@ -8,7 +8,7 @@
 #include "../utils/tools.h"
 struct Adjlist;
 
-// Take a random node and compute the sum of squared degrees of its neighbours
+// Take a random node and compute the sum degrees of its neighbours
 ul algo_nq(const Adjlist &g, ul repeat);
 
 #endif

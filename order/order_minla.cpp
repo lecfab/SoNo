@@ -20,7 +20,7 @@ AnnealingOutput annealing_swap(const Adjlist &g, const ul S, const double K, dou
 
   double initial = energy_rank(g, rank, norm);
   double energy = initial, best = initial;
-  Debug("Initial energy: "<<initial)
+  // Debug("Initial energy: "<<initial)
 
   for(ul step = 0; step < S; ++step) {
     auto uv = random_pair(g.n); // defined in tools.h, so that u!=v
@@ -30,7 +30,7 @@ AnnealingOutput annealing_swap(const Adjlist &g, const ul S, const double K, dou
     double e = energy_swap(g, rank, u, v, norm);
     if(e < 0 or boltzmann_chance(e, K*T)) {
       swap(rank[u], rank[v]);
-      if(step % 100 == 0) Debug(step<<": energy "<<energy<<", e "<<e)
+      // if(step % 10000 == 0) Debug(step<<": energy "<<energy<<", e "<<e)
       energy += e;
       // Debug("Step " << step << "/"<<S<<" : energy="<< energy << " delta="<<e <<" after swapping "<<u<<" "<<v)
 
@@ -64,8 +64,7 @@ bool boltzmann_chance(double delta, double kT) { // delta should always be posit
   if (kT == 0) return false;
   double r = static_cast <double> (rand()) / static_cast <double> (RAND_MAX); // [0,1]
   double chance = exp(-delta / kT);
-  if(chance > r)
-    Debug("boltzmann_chance "<<chance<<" delta "<<delta<<" kT "<<kT)
+  // if(chance > r) Debug("boltzmann_chance "<<chance<<" delta "<<delta<<" kT "<<kT)
   return chance > r;
 }
 
@@ -127,13 +126,16 @@ vector<ul> order_minloga(const Adjlist &g) {
 
 void minla_parametrise(ofstream &output, const Adjlist &g, const int range, const int repetitions) {
   Info("Parametrisation for minla")
+  // double E_max = log(g.e) * g.e, E_min = g.n;
   double E_max = 2 * g.e * g.n, E_min = 1.0 / E_max;
+  output << "data = [\n['MinLA', ";
   annealing_parametrise(output, g, range, repetitions, E_min, E_max, abs);
 }
 
 void minloga_parametrise(ofstream &output, const Adjlist &g, const int range, const int repetitions) {
   Info("Parametrisation for minloga")
-  double E_max = 1.0, E_min = 1.0 / (2* g.n);
+  double E_max = 2.0* g.n, E_min = 1.0 / (2* g.n);
+  output << "data = [\n['MinLogA', ";
   annealing_parametrise(output, g, range, repetitions, E_min, E_max, log_abs);
 }
 
@@ -185,7 +187,7 @@ void localsearch(ofstream &output, const Adjlist &g, double norm(double)) {
 }
 
 void annealing_parametrise(ofstream &output, const Adjlist &g, const int range, const int repetitions, const double E_min, const double E_max, double norm(double)) {
-  double S_min = g.n, S_max = g.e*log(g.e);
+  double S_min = g.n/4.0, S_max = g.e*log(g.e)/4.0;
   // double S_min = 2000000000, S_max = S_min;
   double S_step = (range > 1) ? (log(S_max) - log(S_min)) / (range-1) : 0;
   double E_step = (range > 1) ? (log(E_max) - log(E_min)) / (range-1) : 0;
@@ -197,12 +199,13 @@ void annealing_parametrise(ofstream &output, const Adjlist &g, const int range, 
   int recommanded_S=0;
   double recommanded_E=0;
 
-  output << "steps,kB,min,max,median,avg" << endl;
+  output << "'steps', 'kB', 'min', 'max', 'median', 'avg']";
   for (int S_count = 0; S_count<range; S_count++) {
-    int S = exp(log(S_min) + S_step * S_count);
+    ul S = exp(log(S_min) + S_step * S_count);
 
     for (int E_count = 0; E_count<range; E_count++) {
       double E = exp(log(E_min) + E_step * E_count);
+      Info("Level "<< S_count+1 << "/"<<range <<" for steps and "<<E_count+1<<"/"<<range<<" for standard energy")
       Debug(S << " "<<E)
 
       vector<double> results;
@@ -214,14 +217,15 @@ void annealing_parametrise(ofstream &output, const Adjlist &g, const int range, 
       }
       sort(results.begin(), results.end());
       double median = results[results.size()/2];
-      output << S << "," << E << "," << results[0] << "," << results.back()
-             << "," << median << "," << avg << endl;
+      output << ",\n[" << S << "," << E << "," << results[0] << "," << results.back()
+             << "," << median << "," << avg << "]";
 
       if(median < best or best < 0) {
         best = median; recommanded_S = S; recommanded_E = E;
       }
     }
   }
+  output << "\n]" << endl;
 
   Info("Recommandation: Steps="<<recommanded_S<<" and kB="<<recommanded_E)
 }

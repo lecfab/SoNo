@@ -27,10 +27,6 @@ Orders:
   METIS			de-facto standard offline graph partitioner [30]
   *Gorder			w=5								https://github.com/datourat/Gorder
 
-Datasets:
-  google+: http://gonglab.pratt.duke.edu/google-dataset
-  twitter: http://an.kaist.ac.kr/traces/WWW2010.html
-  sd1-arc, pld-arc: http://webdatacommons.org/hyperlinkgraph/2012-08/download.html
 */
 
 
