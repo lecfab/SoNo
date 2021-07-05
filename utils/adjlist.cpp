@@ -86,6 +86,17 @@ void Adjlist::sort_neighbours() {
 	}
 }
 
+bool Adjlist::are_neighbours_sorted() {
+  for (ul u = 0; u < n*node_factor; ++u) {
+    ul old_v = 0;
+    for (auto v=neigh_beg(u); v<neigh_end(u); ++v) {
+      if(old_v > *v) return false;
+      old_v = *v;
+    }
+  }
+  return true;
+}
+
 
 // --------------------------------------------------
 // ---------- Undirected Adjlist structure ----------

@@ -1,53 +1,72 @@
 // See header for general documentation
 
 #include "algo_minuncut.h"
+#include "../utils/edgelist.h"
 #include "../utils/adjlist.h"
 #include "../utils/heap.h"
 #include "../order/order_deg.h"
 
 using namespace std;
 
+vector<ul> order_minuncut(Edgelist &h) {
+  vector<ul> rank; rank.reserve(h.n);
+  vector<ul> nodes_top; nodes_top.reserve(h.n);
+  vector<ul> nodes_bottom; nodes_bottom.reserve(h.n);
+
+  vector<bool> partition = algo_minuncut(h);
+  for(ul u=0; u<h.n; ++u) {
+    if(partition[u]) nodes_top.push_back(u);
+    else             nodes_bottom.push_back(u);
+  }
+  sort(nodes_top.begin(),    nodes_top.end(),    [&h](ul v, ul w) { return h.get_deg(v) > h.get_deg(w); });
+  sort(nodes_bottom.begin(), nodes_bottom.end(), [&h](ul v, ul w) { return h.get_deg(v) < h.get_deg(w); });
+
+  ul counter = 0;
+  for(auto &u : nodes_top) rank[u] = counter ++;
+  for(auto &u : nodes_bottom) rank[u] = counter ++;
+  return rank;
+}
 
 // 4) Take highest deg counting remaining nodes: 409007 -> 258699
 // vector<bool> algo_minuncut(Edgelist &hh) {
 // Uadjlist g(hh);
-vector<bool> algo_minuncut(const Adjlist &g) {
-  Debug("Undirected Min Uncut (take highest deg counting remaining nodes)")
-  Bheap h(g.n);
-	for (ul u = 0; u < g.n; ++u)
-		h.insert(Keyvalue(u, g.n - g.get_degree(u)));
-
-  vector<bool> partition; partition.reserve(g.n);
-  vector<bool> placed(g.n, false);
-  ul uncut = 0; //, cut = 0;
-
-  for (ul i = 1; i <= g.n; ++i) {
-		Keyvalue kv = h.popmin();
-		ul u = kv.key;
-
-    if(!placed[u]) {
-      partition[u] = false; // arbitrarily
-      placed[u] = true;
-    }
-
-    for (auto &v : g.neigh_iter(u)) { // put neighbours in it
-      if(!h.contains(v)) continue;
-      h.update_increment(v); // neighbours become less important
-
-      if(placed[v] and partition[v] == partition[u])
-        uncut ++; // if they are in the same group, increase uncut
-      else if(!placed[v]) {
-        partition[v] = !partition[u];
-        placed[v] = true;
-      } // cut ++; // (just to see if total match)
-    }
-	} // if(uncut + cut != g.e/g.edge_factor) Alert("Edge count not matching: "<< uncut<<"+"<<cut<<"="<<(uncut+cut)<<" / "<<g.e)
-  // compute_uncut(g, partition);
-  bisection_localsearch(g, partition);
-  uncut = compute_uncut(g, partition);
-  Info("Min Uncut found: " << uncut)
-	return partition;
-}
+// vector<bool> algo_minuncut(const Adjlist &g) {
+//   Debug("Undirected Min Uncut (take highest deg counting remaining nodes)")
+//   Bheap h(g.n);
+// 	for (ul u = 0; u < g.n; ++u)
+// 		h.insert(Keyvalue(u, g.n - g.get_degree(u)));
+//
+//   vector<bool> partition; partition.reserve(g.n);
+//   vector<bool> placed(g.n, false);
+//   ul uncut = 0; //, cut = 0;
+//
+//   for (ul i = 1; i <= g.n; ++i) {
+// 		Keyvalue kv = h.popmin();
+// 		ul u = kv.key;
+//
+//     if(!placed[u]) {
+//       partition[u] = false; // arbitrarily
+//       placed[u] = true;
+//     }
+//
+//     for (auto &v : g.neigh_iter(u)) { // put neighbours in it
+//       if(!h.contains(v)) continue;
+//       h.update_increment(v); // neighbours become less important
+//
+//       if(placed[v] and partition[v] == partition[u])
+//         uncut ++; // if they are in the same group, increase uncut
+//       else if(!placed[v]) {
+//         partition[v] = !partition[u];
+//         placed[v] = true;
+//       } // cut ++; // (just to see if total match)
+//     }
+// 	} // if(uncut + cut != g.e/g.edge_factor) Alert("Edge count not matching: "<< uncut<<"+"<<cut<<"="<<(uncut+cut)<<" / "<<g.e)
+//   // compute_uncut(g, partition);
+//   bisection_localsearch(g, partition);
+//   uncut = compute_uncut(g, partition);
+//   Info("Min Uncut found: " << uncut)
+// 	return partition;
+// }
 
 // template<typename Function>
 void bisection_localsearch(const Adjlist &g, vector<bool> &partition) { //, Function f) {
@@ -87,7 +106,7 @@ ul compute_uncut(const Adjlist &g, const vector<bool> &partition) {
     }
   }
   uncut /= 2; cut /= 2;
-  Debug("Graph uncut " << uncut << " (cut "<<cut<<", total "<< (cut+uncut) <<")")
+  Info("Graph uncut " << uncut << " (cut "<<cut<<", total "<< (cut+uncut) <<")")
   return uncut;
 }
 
@@ -200,54 +219,54 @@ ul compute_uncut(const Adjlist &g, const vector<bool> &partition) {
 
 
 // 3) BFS starting from highest-degree node: 363797 -> 256557
-// vector<bool> algo_minuncut(Edgelist &h) {
-//   Uadjlist g(h);
-//
-//   Debug("Undirected Min Uncut")
-//   ul u0 = 0;
-// 	for (ul u = 0; u < g.n; ++u)
-// 		if(g.get_degree(u) > g.get_degree(u0)) u0 = u;
-//
-//   vector<bool> partition; partition.reserve(g.n);
-//   vector<bool> placed(g.n, false);
-// 	bool team = false;
-//   ul uncut = 0, cut = 0;
-//
-//   vector<ul> order; order.reserve(g.n);
-//   vector<bool> ranked(g.n, false);
-//
-//   ul i = 0;
-//   for (ul c = 0; c < g.n; ++c) {
-//     ul u = (c + u0) % g.n; // allows to start from any node u0
-//     if (placed[u]) // already seen
-//       continue;
-//
-//     order.push_back(u);
-//     placed[u] = true;
-//     partition[u] = team;
-//
-//     while (i < order.size()) {
-//       ul w = order[i++];
-//       ranked[w] = true;
-//       team = !partition[w];
-//       for (auto &v : g.neigh_iter(w)) {
-//         if(ranked[v]) continue;
-//         if (placed[v]) {
-//           if(partition[v] == team) cut ++;
-//           else uncut ++;
-//           continue;
-//         }
-//
-//         order.push_back(v);
-//         placed[v] = true;
-//         partition[v] = team;
-//         cut ++;
-//       }
-//     }
-//   }
-//
-//   compute_uncut(g, partition);
-//   bisection_localsearch(g, partition);
-//   compute_uncut(g, partition);
-// 	return partition;
-// }
+vector<bool> algo_minuncut(Edgelist &h) {
+  Uadjlist g(h);
+
+  Debug("Undirected Min Uncut")
+  ul u0 = 0;
+	for (ul u = 0; u < g.n; ++u)
+		if(g.get_degree(u) > g.get_degree(u0)) u0 = u;
+
+  vector<bool> partition; partition.reserve(g.n);
+  vector<bool> placed(g.n, false);
+	bool team = false;
+  ul uncut = 0, cut = 0;
+
+  vector<ul> order; order.reserve(g.n);
+  vector<bool> ranked(g.n, false);
+
+  ul i = 0;
+  for (ul c = 0; c < g.n; ++c) {
+    ul u = (c + u0) % g.n; // allows to start from any node u0
+    if (placed[u]) // already seen
+      continue;
+
+    order.push_back(u);
+    placed[u] = true;
+    partition[u] = team;
+
+    while (i < order.size()) {
+      ul w = order[i++];
+      ranked[w] = true;
+      team = !partition[w];
+      for (auto &v : g.neigh_iter(w)) {
+        if(ranked[v]) continue;
+        if (placed[v]) {
+          if(partition[v] == team) cut ++;
+          else uncut ++;
+          continue;
+        }
+
+        order.push_back(v);
+        placed[v] = true;
+        partition[v] = team;
+        cut ++;
+      }
+    }
+  }
+
+  compute_uncut(g, partition);
+  bisection_localsearch(g, partition);
+  compute_uncut(g, partition);
+	return partition;
+}

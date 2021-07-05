@@ -17,6 +17,7 @@ public:
   void apply_rank(const std::vector<ul> &rank);
   void to_dag();
   void print_c(const char *output) const;
+  void print_c_binary(const char *output) const;
 
   ul get_degIn(const ul &u);
   ul get_degOut(const ul &u);

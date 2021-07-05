@@ -2,6 +2,7 @@
 #define ALGO_TRIANGLES_H
 
 #include "../utils/tools.h"
+struct Adjlist;
 struct Badjlist;
 
 struct pair_hash
@@ -17,14 +18,25 @@ struct pair_hash
 
 void triangle_complexities(const Badjlist &g);
 
-
 ull count_triangles_hash(const Badjlist &g);
-
 ull count_triangles_bool(const Badjlist &g, bool uOut_iter, bool vOut_iter);
 ull count_triangles_dpp(const Badjlist &g);
 ull count_triangles_dmm(const Badjlist &g);
 ull count_triangles_dpm(const Badjlist &g);
+ull count_triangles_dpm_indep(const Badjlist &g);
+ull count_triangles_dpm_indep_vectint(const Badjlist &g);
+ull count_triangles_dichotomy(const Badjlist &g);
+bool is_neighOut_dichotomy(const Badjlist &g, const ul &u, const ul &v, ull &c);
 
+
+
+double burden_equal(const Adjlist &g);
+ul burden_equal_int(const Adjlist &g);
+ul burden_loop(const Adjlist &g, std::vector<ul> &degrees, bool permutation=false);
+ul burden_periphery(const Adjlist &g);
+ul burden_periphery(const Badjlist &g);
+ul burden_permutation(const Adjlist &g);
+ul burden_permutation(const Badjlist &g);
 
 
 #endif

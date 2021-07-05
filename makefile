@@ -1,18 +1,17 @@
 CC=g++ -std=c++14 #-fconcepts
-# CFLAGS=-O9 -lm
 
 DEBUG?=0 # debug option
-
-EXEC=benchmark ord rankedges parametrise
-MF=makefile # recompile when Makefile has been modified
 
 ifeq ($(DEBUG), 1)
 	CFLAGS=-Og -Wextra -g3 -D DEBUG
 	o=debug.o
 else
-	CFLAGS=-Ofast #-Wall # https://cpluspluspedia.com/fr/tutorial/4708/compiler-et-construire
+	CFLAGS=-Ofast -g #-Wall # https://cpluspluspedia.com/fr/tutorial/4708/compiler-et-construire # https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
 	o=o
 endif
+
+EXEC=benchmark alg ord rankedges bipartite parametrise
+MF=makefile # recompile when Makefile has been modified
 
 
 UTILS_H =	utils/tools.h \
@@ -39,6 +38,7 @@ ORDERS_H = 	order/order_deg.h \
 			order/order_gorder.h \
 			order/order_ldg.h \
 			order/order_minla.h \
+			order/order_triangles.h \
 			order/order_slashburn.h
 
 UTILS_O =	$(UTILS_H:.h=.$(o))
@@ -60,6 +60,9 @@ undirect: undirect.$(o) $(UTILS_O)
 	$(CC) $^ $(CFLAGS) -o $@
 
 rankedges: rankedges.$(o) $(UTILS_O)
+	$(CC) $^ $(CFLAGS) -o $@
+
+bipartite: bipartite.$(o) $(UTILS_O)
 	$(CC) $^ $(CFLAGS) -o $@
 
 parametrise: parametrise.$(o) $(UTILS_O) $(ALGOS_O) $(ORDERS_O)

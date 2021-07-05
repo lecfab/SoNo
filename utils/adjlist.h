@@ -55,6 +55,8 @@ public:
 	Edgelist to_edgelist(bool directed=true);
 	Edgelist to_edgelist_ranked(bool directed, const std::vector<ul> &rank);
 
+  void sort_neighbours();
+  bool are_neighbours_sorted();
 
 protected: // Private building operations
 	void build_from_edgelist(Edgelist &g, bool sorted=false);
@@ -67,7 +69,6 @@ protected: // Private building operations
 	virtual bool build_edge_condition(const ul &u, const ul &v) = 0;
 
 	void compute_cumulated_degrees(std::vector<ul> &deg);
-	void sort_neighbours();
 };
 
 struct Uadjlist : Adjlist {

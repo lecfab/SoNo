@@ -24,6 +24,7 @@
 #include "algo/algo_dominatingset.h"
 #include "algo/algo_minuncut.h"
 #include "algo/algo_triangles.h"
+#include "order/order_triangles.h"
 
 using namespace std;
 
@@ -44,7 +45,7 @@ int main(int argc, char** argv){
       "bellman","diameter",
       "kcore","ds","dominatingset",
       "pr",
-      "uncut","triangles",
+      "uncut","triangles","trianglesdpp","trianglesdpm",
       "test"}, CLI::ignore_case));
   // app.add_flag("-A,--all", algo_all, "Execute all algorithms consecutively and save time measurements")->capture_default_str();
   app.add_option("-o,--output", output_file, "File in which to output time measurements")->capture_default_str();
@@ -91,13 +92,24 @@ int main(int argc, char** argv){
     Badjlist g(h);
     TimeStep("Adjlist")
     TimeRecStep("adjlist", output)
+
+    Info("Neighbourhoods are " << (g.are_neighbours_sorted() ? "":"not ") << "sorted")
     // algo_kcore(g); TimeStep("kcore")
     triangle_complexities(g); TimeStep("t0")
     //
-    // count_triangles_dpp(g); TimeStep("t1")
-    // count_triangles_dmm(g); TimeStep("t2")
-    // count_triangles_dpm(g); TimeStep("t3")
-    // count_triangles_hash(g); TimeStep("t4")
+    // count_triangles_dpp(g); TimeStep("t1") TimeRecStep("t1", output)
+    // count_triangles_dmm(g); TimeStep("t2") TimeRecStep("t2", output)
+    count_triangles_dpm_indep_vectint(g); TimeStep("t6") TimeRecStep("t6", output)
+    count_triangles_dpm(g); TimeStep("t3") TimeRecStep("t3", output)
+    count_triangles_dichotomy(g); TimeStep("t4") TimeRecStep("t4", output)
+    count_triangles_dpm_indep(g); TimeStep("t5") TimeRecStep("t5", output)
+    // count_triangles_hash(g); TimeStep("t5")
+  }
+
+  else if(algo_name == "uncut" and !directed) {
+    algo_minuncut(h);
+    TimeStep("Uncut")
+    TimeRecStep("uncut", output)
   }
 
   else if(algo_name == "pr") { // uses Edgelist and not Adjlist
@@ -122,10 +134,17 @@ int main(int argc, char** argv){
       TimeTotal()
       TimeRecTotal("prepare", output)
 
-      if(algo_name == "uncut" and !directed) {
-        algo_minuncut(*g);
-        TimeStep("Uncut")
-        TimeRecStep("uncut", output)
+
+      if(algo_name == "trianglesdpp" and !directed) {
+        place_neighbour_dpp(*g);
+        TimeStep("trianglesdpp")
+        TimeRecStep("trianglesdpp", output)
+      }
+
+      if(algo_name == "trianglesdpm" and !directed) {
+        place_neighbour_dpm(*g);
+        TimeStep("trianglesdpm")
+        TimeRecStep("trianglesdpm", output)
       }
 
   		if(algo_all or algo_name == "nq") {

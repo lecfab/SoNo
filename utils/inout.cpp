@@ -1,6 +1,7 @@
 #include "inout.h"
 #include "tools.h"
 #include "edgelist.h"
+#include <climits>
 #include <iostream>
 #include <fstream> // ofstream: write, ifstream: read, fstream: read and write from/to files
 
@@ -25,13 +26,27 @@ vector<ul> read_order(ifstream &file) {
 
 // Experiment: FILE* seems to be 20x faster than ofstream <<
 void c_printorder(const vector<ul> &rank, const ul n, const char* output){
-  FILE *file=fopen(output,"w");
-  for (ul u=0; u < n; ++u) {
+  FILE *file = fopen(output, "w");
+  for (ul u=0; u<n; ++u) {
     if(rank[u] >= n) {
       Alert("rank " << u << " is " << rank[u])
       continue;
     }
     fprintf(file, "%lu\n", rank[u]);
+  }
+  fclose(file);
+}
+
+void c_printorder_binary(const vector<ul> &rank, const ul n, const char* output){
+  FILE *file = fopen(output, "wb");
+  if(n < UINT_MAX) {
+    Info("Using unsigned int instead of unsigned long because n<"<< UINT_MAX)
+    vector<unsigned int> compressed_rank; compressed_rank.reserve(n);
+    for (ul u=0; u<n; ++u) { compressed_rank.push_back(rank[u]); }
+    fwrite(&compressed_rank[0], sizeof(unsigned int), n, file);
+  }
+  else {
+    fwrite(&rank[0], sizeof(ul), n, file);
   }
   fclose(file);
 }

@@ -21,10 +21,13 @@
 #include "order/order_ldg.h"
 #include "order/order_minla.h"
 #include "order/order_slashburn.h"
+#include "order/order_triangles.h"
 #include "algo/algo_tarjan.h"
 #include "algo/algo_kcore.h"
 #include "algo/algo_dfs.h"
 #include "algo/algo_bfs.h"
+#include "algo/algo_triangles.h"
+#include "algo/algo_minuncut.h"
 
 using namespace std;
 
@@ -48,7 +51,8 @@ int main(int argc, char** argv) {
       "gorder",
       "ldg",
       "slashburn",
-      "minla","minloga"}, CLI::ignore_case));
+      "minla","minloga",
+      "trianglesdpp", "trianglesdpm", "uncut"}, CLI::ignore_case));
   app.add_flag("-d,!-u,--directed,!--undirected", directed,
       "Specify if the graph is directed or undirected; multiple edges are not accepted");
   app.add_option("-o,--output", output_file, "File in which to output the order")->capture_default_str();
@@ -98,6 +102,7 @@ int main(int argc, char** argv) {
     else if(order_name == "deg+") rank = order_degOut(h);
 		else if(order_name == "deg-") rank = order_degIn(h);
 		else if(order_name == "rcm") rank = order_rcm(h);
+    else if(order_name == "uncut") rank = order_minuncut(h);
     else if(order_name == "gorder") {
       number = (number == 0) ? 5 : number;
       rank = complete_gorder(h, number);
@@ -133,6 +138,8 @@ int main(int argc, char** argv) {
       else if(order_name == "minla")  rank = order_minla(*g);
       else if(order_name == "minloga")  rank = order_minloga(*g);
       else if(order_name == "slashburn")  rank = order_slashburn(*g);
+      else if(order_name == "trianglesdpp") rank = place_neighbour_dpp(*g);
+      else if(order_name == "trianglesdpm") rank = place_neighbour_dpm(*g);
 			else { Alert("Unknown order `" << order_name <<"`"); return 1; }
       // delete g;
     }
@@ -147,6 +154,7 @@ int main(int argc, char** argv) {
 	Info("Output into file " << output_file)
 	// ofstream output_file(argv[4]); printorder(rank, g.n, output_file, g);
 	c_printorder(rank, n, output_file.c_str());
+	c_printorder_binary(rank, n, "binary_output.bin");
 	TimeStep("Output")
   TimeTotal()
 

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <climits>
 
 #include "edgelist.h"
 #include "tools.h"
@@ -50,6 +51,28 @@ void Edgelist::print_c(const char* output) const {
   FILE *file = fopen(output,"w");
 	for (auto &edge : edges) fprintf(file, "%lu %lu\n", edge.first, edge.second);
 	fclose(file);
+}
+void Edgelist::print_c_binary(const char* output) const {
+  FILE *file = fopen(output,"wb");
+  if(n < UINT_MAX) {
+    Info("Using unsigned int instead of unsigned long because n<"<< UINT_MAX)
+    vector<ul> compressed_edges; compressed_edges.reserve(2*e);
+    for (auto &edge : edges) {
+      compressed_edges.push_back(edge.first);
+      compressed_edges.push_back(edge.second);
+    }
+    fwrite(&compressed_edges[0], sizeof(compressed_edges[0]), 2*e, file);
+  }
+  else {
+    Info("Using unsigned long because n>"<< UINT_MAX)
+    vector<ul> compressed_edges; compressed_edges.reserve(2*e);
+    for (auto &edge : edges) {
+      compressed_edges.push_back(edge.first);
+      compressed_edges.push_back(edge.second);
+    }
+    fwrite(&compressed_edges[0], sizeof(compressed_edges[0]), 2*e, file);
+  }
+  fclose(file);
 }
 
 
