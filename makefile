@@ -19,6 +19,7 @@ UTILS_H =	utils/tools.h \
 			utils/edgelist.h \
 			utils/adjlist.h \
 			utils/heap.h \
+			utils/continuousrank.h \
 			utils/unitheap.h
 			# utils/CLI11.h
 ALGOS_H = 	algo/algo_nq.h \

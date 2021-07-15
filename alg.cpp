@@ -99,10 +99,10 @@ int main(int argc, char** argv){
     //
     // count_triangles_dpp(g); TimeStep("t1") TimeRecStep("t1", output)
     // count_triangles_dmm(g); TimeStep("t2") TimeRecStep("t2", output)
-    count_triangles_dpm_indep_vectint(g); TimeStep("t6") TimeRecStep("t6", output)
     count_triangles_dpm(g); TimeStep("t3") TimeRecStep("t3", output)
     count_triangles_dichotomy(g); TimeStep("t4") TimeRecStep("t4", output)
-    count_triangles_dpm_indep(g); TimeStep("t5") TimeRecStep("t5", output)
+    // count_triangles_dpm_indep_vectint(g); TimeStep("t6") TimeRecStep("t6", output)
+    // count_triangles_dpm_indep(g); TimeStep("t5") TimeRecStep("t5", output)
     // count_triangles_hash(g); TimeStep("t5")
   }
 

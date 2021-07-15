@@ -2,16 +2,11 @@
 #define ADJLIST_H
 
 /* Structures for compact adjacency lists, built from a list of edges */
-// #include <vector>
-// #include <tuple>
-// #include <list>
-// #include <algorithm>
 
 #include "tools.h"
 #include <functional>
 struct Edgelist;
 
-// using namespace std;
 
 struct NeighIter {
   const ul *begin_value;
@@ -29,7 +24,7 @@ public:
 	ul n;//number of nodes
 	ul e;//number of edges
 	std::vector<ul> cd;//cumulative degree cd[0]=0, length=n+1
-	std::vector<ul> adj;//concatenated lists of neighbors of all nodes, length e
+	std::vector<ul> adj;//concatenated lists of neighbours of all nodes, length e
   std::function<ul(ul)> ranker;
   void ranker_reset();
 

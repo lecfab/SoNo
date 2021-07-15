@@ -5,12 +5,86 @@
 #include <set>
 #include "order_triangles.h"
 #include "../utils/adjlist.h"
-#include "../utils/heap.h"
+#include "../utils/continuousrank.h"
 
 using namespace std;
 
 
-
+// vector<ul> optimise_edges(const Adjlist &g) {
+//   ul m = g.e / g.edge_factor;
+//   // ----- preparation -----
+//   vector<double> altitude; altitude.reserve(g.n);
+//   list<ul> chain;
+//   vector<list<ul>::iterator> pointer; pointer.reserve(g.n);
+//   for(ul u=0; u<g.n; ++u) {
+//     altitude.push_back(u-((double) g.n) / 2);
+//     pointer.push_back(chain.insert(chain.end(), u));
+//   }
+//
+//   vector<ul> dp = compute_dp(g, altitude);
+//   vector<bool> watch(g.n, true);
+//
+//   // ----- loop until stability is reached -----
+//   ul score = sum_mindpp(g, dp), previous_score = score * 2;
+//   cout << "Initial score: " << ((double) score) / m << endl;
+//   double precision = 0*1e-3; // SET PRECISION
+//   while(score < previous_score) {
+//     if(score >= (1.-precision) * previous_score) {
+//       Info("Truncated with precision "<< precision)
+//       break;
+//     }
+//     previous_score = score;
+//
+//     // select nodes that have been updated
+//     vector<ul> nodes; nodes.reserve(g.n);
+//     for(ul u=0; u<g.n; ++u)
+//       if(watch[u]) {
+//         watch[u] = false;
+//         nodes.push_back(u);
+//       }
+//
+//     // ----- consider each node in random order -----
+//     random_shuffle(nodes.begin(), nodes.end());
+//     for(auto &u : nodes) {
+//       vector<ul> neighbours; neighbours.reserve(g.get_degree(u));
+//       for(auto &v : g.neigh_iter(u)) if(altitude[v] > altitude[u]) neighbours.push_back(v);
+//       sort(neighbours.begin(), neighbours.end(), [&altitude](ul v, ul w) { return altitude[v] < altitude[w]; });
+//
+//       // ----- select the closest successor according to current ordering -----
+//       ul v_final = u;
+//       for(auto &v : neighbours) {
+//         // ----- compute the variation if u goes after v -----
+//         long long int delta = (dp[u] > dp[v] + 1);
+//         for(auto &w : g.neigh_iter(u)) if(dp[u] <= dp[w]) delta --;
+//         for(auto &w : g.neigh_iter(v)) if(w != u and dp[v] < dp[w]) delta ++;
+//
+//         if(delta >= 0) break;
+//         // ----- update score and out-degrees -----
+//         score += delta;
+//         dp[u] --;
+//         dp[v] ++;
+//
+//         v_final = v;
+//       }
+//       if(v_final == u) continue;
+//
+//       // ----- put it in the new position: update altitude and watchlist -----
+//       pointer[u] = insert_into_chain(chain, pointer[u], next(pointer[v_final]), altitude);
+//       watch[u] = true;
+//       for(auto &w : g.neigh_iter(u)) // new predecessors of u should be watched
+//         if(altitude[w] < altitude[u]) watch[w] = true;
+//     }
+//
+//     cout << "Current score: " << ((double) score) / m << "\t ("<<100*((double) nodes.size()) / g.n<<"% nodes)" <<endl;
+//   }
+//
+//   // just to check that score is accurate
+//   dp = compute_dp(g, altitude);
+//   score = sum_mindpp(g, dp);
+//   cout << "Final score:   " << ((double) score) / m << endl;
+//
+//   return rank_from_chain(chain);
+// }
 
 // mistakes: pi should have double type in neighbour_positions
 // mistakes: end value should be pi+1 and not pointer+1
@@ -18,24 +92,19 @@ using namespace std;
 // improved: linear computing of best penalties
 // improved: linked list instead of array where everyone had to be moved one by one
 // improved: when u goes after v, put u close to v instead of at the end of the chain (normalisation and cache purpose)
+// improved: ContinuousRank is now a separate structure with hidden tools
 // todo: watch heap instead of bool-array, but it seems slower in practice
 // todo: altitude to be evened out among several predecessors
-vector<ul> place_neighbour_dpp(const Adjlist &g) { return place_neighbour(g, sum_square_dpp, best_position_dpp); }
-vector<ul> place_neighbour_dpm(const Adjlist &g) { return place_neighbour(g, sum_square_dpm, best_position_dpm); }
+vector<ul> place_neighbour_dpp(const Adjlist &g)    { return place_neighbour(g, sum_square_dpp, best_position_dpp); }
+vector<ul> place_neighbour_dpm(const Adjlist &g)    { return place_neighbour(g, sum_square_dpm, best_position_dpm); }
+vector<ul> place_neighbour_mindpp(const Adjlist &g) { return place_neighbour(g, sum_mindpp,  best_position_mindpp); }
 vector<ul> place_neighbour(const Adjlist &g, decltype(sum_square_dpm) &scoring, decltype(best_position_dpm) &best_position) {
   ul m = g.e / g.edge_factor;
   // ----- preparation -----
-  vector<double> altitude; altitude.reserve(g.n);
-  list<ul> chain;
-  vector<list<ul>::iterator> pointer; pointer.reserve(g.n);
+  ContinuousRank cRank(g.n);
   // unordered_set<ul> next_nodes; next_nodes.reserve(g.n);
-  for(ul u=0; u<g.n; ++u) {
-    altitude.push_back(u-((double) g.n) / 2);
-    pointer.push_back(chain.insert(chain.end(), u));
-    // next_nodes.insert(u);
-  }
 
-  vector<ul> dp = compute_dp(g, altitude);
+  vector<ul> dp = compute_dp(g, cRank);
   vector<bool> watch(g.n, true);
 
   // ----- loop until stability is reached -----
@@ -51,8 +120,6 @@ vector<ul> place_neighbour(const Adjlist &g, decltype(sum_square_dpm) &scoring, 
 
     // select nodes that have been updated
     vector<ul> nodes; nodes.reserve(g.n);
-    // for(auto &u : next_nodes) nodes.push_back(u);
-    // next_nodes = {};
     for(ul u=0; u<g.n; ++u)
       if(watch[u]) {
         watch[u] = false;
@@ -64,35 +131,39 @@ vector<ul> place_neighbour(const Adjlist &g, decltype(sum_square_dpm) &scoring, 
     for(auto &u : nodes) {
       vector<ul> neighbours; neighbours.reserve(g.get_degree(u));
       for(auto &v : g.neigh_iter(u)) neighbours.push_back(v);
-      sort(neighbours.begin(), neighbours.end(), [&altitude](ul v, ul w) { return altitude[v] < altitude[w]; });
-
+      sort(neighbours.begin(), neighbours.end(), [&cRank](ul v, ul w) { return cRank[v] < cRank[w]; });
       // ----- find the best position in its neighbourhood -----
       ul i0 = g.get_degree(u) - dp[u];
       auto pos_penalty = best_position(g, u, neighbours, dp, i0);
       if(pos_penalty.second == 0) continue;
-      score += pos_penalty.second;
 
-      // ----- put it in the best position: update out-degrees and altitude -----
-      dp[u] = g.get_degree(u) - pos_penalty.first;
-      for(ul j=pos_penalty.first; j<i0; ++j) dp[ neighbours[j] ] --;
-      for(ul j=i0; j<pos_penalty.first; ++j) dp[ neighbours[j] ] ++;
-      // next_nodes.insert(u);
-      for(auto &v : neighbours) watch[v] = true; // next_nodes.insert(v);
+      // ----- put it in the best position: update score, out-degrees and rank -----
+      if(pos_penalty.second > 0) // code-word to say that dp has already been updated
+        score -= pos_penalty.second;
+      else {
+        score += pos_penalty.second;
+        dp[u] = g.get_degree(u) - pos_penalty.first;
+        for(ul j=pos_penalty.first; j<i0; ++j) dp[ neighbours[j] ] --;
+        for(ul j=i0; j<pos_penalty.first; ++j) dp[ neighbours[j] ] ++;
+      }
 
-      auto pointer_next = next(pointer[neighbours.back()]);
-      if(pos_penalty.first < g.get_degree(u)) { pointer_next = pointer[ neighbours[pos_penalty.first] ]; }
-      pointer[u] = insert_into_chain(chain, pointer[u], pointer_next, altitude);
+      if(pos_penalty.first == g.get_degree(u)) cRank.move_after(u, neighbours.back());
+      else cRank.move_before(u, neighbours[pos_penalty.first]);
+
+      // for(auto &v : neighbours) { Info("\t"<< cRank[v])}
+
+      for(auto &v : neighbours) watch[v] = true;
     }
 
-    cout << "Current score: " << ((double) score) / m << "\t ("<<100*((double) nodes.size()) / g.n<<"% nodes)" <<endl;
+    cout << "Current score: " << ((double) score) / m << "\t ("<<100*((double) nodes.size()) / g.n<<"% nodes) \tNormalisations: "<<cRank.normalisations <<endl;
   }
 
   // just to check that score is accurate
-  // dp = compute_dp(g, altitude);
+  // dp = compute_dp(g, cRank);
   // score = scoring(g, dp);
   cout << "Final score:   " << ((double) score) / m << endl;
 
-  return rank_from_chain(chain);
+  return cRank.to_rank();
 }
 
 
@@ -110,18 +181,62 @@ ul sum_square_dpm(const Adjlist &g, const vector<ul> &dp) {
     s += dp[u] * (g.get_degree(u) - dp[u]);
   return s;
 }
-// ul sum_mindpp(const Adjlist &g, const vector<ul> &dp) {
-//   ul s = 0;
-//   for(ul u=0; u<g.n; ++u)
-//     for(auto &v : g.neigh_iter(u))
-//       if(altitude[v] > altitude[u])
-//         s += min(dp[u], dp[v]);
-//   return s;
+ul sum_mindpp(const Adjlist &g, const vector<ul> &dp) { // , const vector<double> &altitude
+  ul s = 0;
+  for(ul u=0; u<g.n; ++u)
+    for(auto &v : g.neigh_iter(u))
+      if(v > u) // if(altitude[v] > altitude[u]) would be more correct but we just want to select half of the edges
+        s += min(dp[u], dp[v]);
+  return s;
+}
+
+
+// pair<ul, long long int> best_position_mindpp(const Adjlist &g, const ul &u, const vector<ul> &neighbours, const vector<ul> &dp, ul i0) {
+//   pair<ul, long long int> pos_penalty = { 0, 0 };
+//   ul new_dp_u = 0;
+//   vector<ul> new_dp; new_dp.reserve(neighbours.size());
+//   for(ul j=0; j<i0; ++j) new_dp.push_back(dp[neighbours[j]] - 1); // predecessors loose a successor if u is in position 0
+//   for(ul j=i0; j<g.get_degree(u); ++j) new_dp.push_back(dp[neighbours[j]]); // successors are not impacted if u is in position 0
+//
+//   for(ul i=0; i<=g.get_degree(u); ++i) { // check each new position for u
+//     new_dp_u ++; // one more predecessor for u
+//     if(i > 0) new_dp[i-1] ++; // one more successor for this predecessor
+//
+//     long long int penalty = 0;
+//     for(auto &v : g.neigh_iter(u)) penalty += min(new_dp_u, new_dp[v]) - min(dp[u], dp[v]);
+//     ...
+//
+//
+//     long long int penalty = i0*i0 - i*i + (i-i0)*g.get_degree(u);
+//     for(ul j=i; j<i0; ++j) // move neighbours to the right if i<i0
+//       penalty += 2*dp[neighbours[j]] - g.get_degree(neighbours[j]) - 1;
+//     for(ul j=i0; j<i; ++j) // move neighbours to the left if i>i0
+//       penalty += g.get_degree(neighbours[j]) - 2*dp[neighbours[j]] - 1;
+//     if(penalty < best_penalty) {
+//       best_pos = i; best_penalty = penalty;
+//     }
+//   }
 // }
 
+pair<ul, long long int> best_position_mindpp(const Adjlist &g, const ul &u, const vector<ul> &neighbours, vector<ul> &dp, ul i0) {
+  pair<ul, long long int> pos_penalty = { 0, 0 };
+  for(ul i=i0+1; i<=g.get_degree(u); ++i) {
+    ul v = neighbours[i-1];
+    // ----- compute the variation if u goes after v -----
+    long long int delta = (dp[u] > dp[v] + 1);
+    for(auto &w : g.neigh_iter(u)) if(dp[u] <= dp[w]) delta --;
+    for(auto &w : g.neigh_iter(v)) if(w != u and dp[v] < dp[w]) delta ++;
 
+    if(delta >= 0) break;
+    // ----- update score and out-degrees -----
+    pos_penalty = { i, pos_penalty.second + delta };
+    dp[u] --;
+    dp[v] ++;
+  }
+  return { pos_penalty.first, -pos_penalty.second }; // second is inverted: code-word to say that dp has already been updated
+}
 
-pair<ul, long long int> best_position_dpp(const Adjlist &g, const ul &u, const vector<ul> &neighbours, const vector<ul> &dp, ul i0) {
+pair<ul, long long int> best_position_dpp(const Adjlist &g, const ul &u, const vector<ul> &neighbours, vector<ul> &dp, ul i0) {
   pair<ul, long long int> pos_penalty = { 0, 0 };
   long long int neighbour_penalty = 0;
   for(ul i=i0; i>0; --i) {
@@ -140,7 +255,7 @@ pair<ul, long long int> best_position_dpp(const Adjlist &g, const ul &u, const v
   return pos_penalty;
 }
 
-pair<ul, long long int> best_position_dpm(const Adjlist &g, const ul &u, const vector<ul> &neighbours, const vector<ul> &dp, ul i0) {
+pair<ul, long long int> best_position_dpm(const Adjlist &g, const ul &u, const vector<ul> &neighbours, vector<ul> &dp, ul i0) {
   pair<ul, long long int> pos_penalty = { 0, 0 };
   long long int neighbour_penalty = 0;
   for(ul i=i0; i>0; --i) {
@@ -159,34 +274,11 @@ pair<ul, long long int> best_position_dpm(const Adjlist &g, const ul &u, const v
   return pos_penalty;
 }
 
-list<ul>::iterator insert_into_chain(list<ul> &chain, list<ul>::iterator pointer_u, list<ul>::iterator pointer_next, vector<double> &altitude) {
-  chain.erase(pointer_u);
-  double altitude_prev = altitude[chain.front()] - 1;
-  double altitude_next = altitude[chain.back()] + 1;
-  if(pointer_next != chain.end()) altitude_next = altitude[*pointer_next];
-  if(pointer_next != chain.begin()) altitude_prev = altitude[*prev(pointer_next)];
-  pointer_u = chain.insert(pointer_next, *pointer_u);
 
-  altitude[*pointer_u] = (altitude_next + altitude_prev) / 2;
-  if(altitude_prev >= altitude[*pointer_u] or altitude[*pointer_u] >= altitude_next) { // small float limit
-    Info("Normalising altitude") // could we normalise only where it is useful?
-    double counter = -((double) altitude.size()) / 2;
-    for(auto &w : chain) altitude[w] = counter++;
-  }
-
-  return pointer_u;
-}
-
-vector<ul> compute_dp(const Adjlist &g, const vector<double> &altitude) {
+vector<ul> compute_dp(const Adjlist &g, const ContinuousRank &cRank) {
   vector<ul> dp(g.n, 0);
   for(ul u=0; u<g.n; ++u)
     for(auto &v : g.neigh_iter(u))
-      if(altitude[v] > altitude[u]) dp[u] ++;
+      if(cRank[v] > cRank[u]) dp[u] ++;
   return dp;
-}
-vector<ul> rank_from_chain(const list<ul> &chain) {
-  vector<ul> rank; rank.reserve(chain.size());
-  ul counter = 0;
-  for(auto &w : chain) rank[w] = counter++;
-  return rank;
 }

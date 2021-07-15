@@ -23,7 +23,7 @@
 
 #ifndef NLINKS
 #define NLINKS 100000000
-#define NNODES 1000000
+#define NNODES 10000000
 #endif
 
 #define TimeBegin() auto time_begin = std::chrono::steady_clock::now(); \

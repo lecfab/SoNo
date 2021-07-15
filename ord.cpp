@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
       else if(order_name == "minla")  rank = order_minla(*g);
       else if(order_name == "minloga")  rank = order_minloga(*g);
       else if(order_name == "slashburn")  rank = order_slashburn(*g);
-      else if(order_name == "trianglesdpp") rank = place_neighbour_dpp(*g);
+      else if(order_name == "trianglesdpp") rank = place_neighbour_dpp(*g); // place_neighbour_mindpp
       else if(order_name == "trianglesdpm") rank = place_neighbour_dpm(*g);
 			else { Alert("Unknown order `" << order_name <<"`"); return 1; }
       // delete g;
